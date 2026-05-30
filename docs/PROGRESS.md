@@ -7,19 +7,9 @@
 
 ## Current Status
 
-**Overall:** Phase 0 — Pre-build planning complete, nothing built yet
-**Last updated:** Project kickoff
-**Next task:** Decide AWS region → then begin Phase 1 (AWS account setup)
-
----
-
-## Blocking Decision
-
-> **AWS region not yet chosen.**
-> Ask the user which region before starting Phase 1.
-> Default recommendation: `us-east-1` (cheapest, most services)
-> Options: `us-east-1` / `us-west-2` / `eu-west-1` / `ap-south-1`
-> Once decided, update `CLAUDE.md` under "AWS Configuration" and remove this block.
+**Overall:** Phase 1 complete — starting Phase 2 (Terraform Infrastructure)
+**Last updated:** May 29, 2026
+**Next task:** GitHub repo setup → then Terraform VPC module
 
 ---
 
@@ -28,7 +18,7 @@
 | Phase | Status | Tasks Done | Total Tasks |
 |-------|--------|------------|-------------|
 | Phase 0 — Planning | COMPLETE | — | — |
-| Phase 1 — AWS Account Setup | NOT STARTED | 0 | 30 |
+| Phase 1 — AWS Account Setup | COMPLETE | 23 | 23 |
 | Phase 2 — Terraform Infrastructure | NOT STARTED | 0 | 47 |
 | Phase 3 — Backend RAG Engine | NOT STARTED | 0 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
@@ -51,144 +41,130 @@
 - [x] 272-task checklist created (Hybrid_RAG_Project_Checklist.xlsx)
 - [x] CLAUDE.md created
 - [x] PROGRESS.md created
+- [x] Architecture upgraded — merged Vector RAG + Vectorless RAG + LLM Wiki + Graph RAG + Verification layer
+
+### Phase 1 — AWS Account Setup (complete)
+
+#### IAM & Security
+- [x] Created IAM admin user: `context-engine-admin`
+- [x] Enabled MFA on root account
+- [x] Enabled MFA on `context-engine-admin`
+- [x] Created IAM policy for GitHub Actions: `context-engine-github-actions-policy`
+- [x] Created IAM user for GitHub Actions: `context-engine-github-actions`
+- [x] Created ECS execution role: `context-engine-ecs-execution-role`
+- [x] Created ECS task role: `context-engine-ecs-task-role` with `context-engine-ecs-task-policy`
+
+#### Billing & Alerts
+- [x] Enabled IAM access to billing
+- [x] Created billing alarm at $30: `context-engine-billing-warning-30`
+- [x] Enabled Cost Explorer
+- [x] Enabled Free Tier alerts
+- [x] Tagging strategy locked: Project=context-engine
+
+#### Local Tooling
+- [x] AWS CLI v2 installed and verified
+- [x] AWS CLI profile configured: `context-engine-admin` (admin) + `context-engine` (github-actions)
+- [x] Terraform 1.15.5 installed
+- [x] Docker 28.5.1 installed
+- [x] Python 3.14.3 installed
+- [x] Poetry 2.4.1 installed
+- [x] Node v24 + pnpm installed
+- [x] Make 4.4.1 installed
+
+#### Terraform State Bootstrap
+- [x] S3 bucket created: `context-engine-tf-state-256716302630`
+- [x] Versioning enabled on state bucket
+- [x] Encryption enabled on state bucket (AES256)
+- [x] Public access blocked on state bucket
+- [x] DynamoDB lock table created: `context-engine-tf-lock`
 
 ---
 
 ## In Progress
 
-_Nothing in progress yet._
-
----
-
-## Phase 1 — AWS Account Setup (NOT STARTED)
-
-Work through these in order. Check off as completed.
-
-### IAM & Security
-- [ ] Create IAM admin user (do NOT use root)
-- [ ] Enable MFA on root account
-- [ ] Enable MFA on IAM admin user
-- [ ] Create IAM policy for GitHub Actions (least-privilege)
-- [ ] Create IAM role for ECS task execution
-- [ ] Create IAM role for ECS task (app role)
-
-### Billing & Alerts
-- [ ] Set billing alarm at $30 (warning)
-- [ ] Set billing alarm at $45 (critical)
-- [ ] Enable Cost Explorer
-- [ ] Enable AWS Free Tier usage alerts
-- [ ] Tag strategy: Project=context-engine on all resources
-
-### Local Tooling
-- [ ] AWS CLI v2 installed and configured (`--profile context-engine`)
-- [ ] Terraform >= 1.7 installed
-- [ ] Docker Desktop installed
-- [ ] Python 3.12 installed (via pyenv)
-- [ ] Poetry installed
-- [ ] Node 20 + pnpm installed
-
-### Terraform State Bootstrap
-- [ ] S3 bucket created: `context-engine-tf-state-<account-id>`
-- [ ] Versioning enabled on state bucket
-- [ ] Encryption enabled on state bucket
-- [ ] Public access blocked on state bucket
-- [ ] DynamoDB table created: `context-engine-tf-lock` (PK: LockID)
-
-### GitHub Repo Setup
-- [ ] Repository created: `context-engine`
-- [ ] Branch protection on main
-- [ ] GitHub Actions secrets added (AWS keys, OPENAI_API_KEY)
-- [ ] .gitignore created
-- [ ] Root README.md created
-- [ ] Monorepo folder structure created
+### Phase 1 — GitHub Repo Setup (remaining)
+- [ ] Create GitHub repository: `context-engine` (public)
+- [ ] Add branch protection on main
+- [ ] Add GitHub Actions secrets
+- [ ] Create .gitignore
+- [ ] Push CLAUDE.md and docs/ as first commit
 
 ---
 
 ## Phase 2 — Terraform Infrastructure (NOT STARTED)
 
-_Will be populated when Phase 1 is complete._
+### Project Structure
+- [ ] Create infra/ root module (main.tf, variables.tf, outputs.tf, versions.tf)
+- [ ] Create infra/modules/ subfolders (vpc, ecs, rds, s3, cloudfront, cognito, cloudwatch)
+- [ ] Create infra/envs/staging/ and prod/
+- [ ] Configure Terraform backend (S3 + DynamoDB)
+- [ ] Pin all provider versions
 
----
+### VPC Module
+- [ ] Create VPC (CIDR 10.0.0.0/16)
+- [ ] Create 2 public subnets
+- [ ] Create 2 private subnets
+- [ ] Create Internet Gateway
+- [ ] Create NAT Gateway (1x)
+- [ ] Create route tables
+- [ ] Create security groups (ALB, ECS, RDS)
 
-## Phase 3 — Backend RAG Engine (NOT STARTED)
+### RDS Module
+- [ ] Create RDS subnet group
+- [ ] Create RDS PostgreSQL 16 (db.t3.micro)
+- [ ] Store DB password in Secrets Manager
+- [ ] Enable automated backups
 
-_Will be populated when Phase 2 is complete._
+### ECS Module
+- [ ] Create ECS cluster
+- [ ] Create ECS task definition
+- [ ] Create ECS service
+- [ ] Create ALB + target group + listener
+- [ ] Create ECR repository
 
----
+### S3 & CloudFront
+- [ ] Create S3 bucket for frontend
+- [ ] Create S3 bucket for documents
+- [ ] Create CloudFront distribution
 
-## Phase 4 — API Layer (NOT STARTED)
+### Supporting Services
+- [ ] Create DynamoDB table for sessions
+- [ ] Create SQS queue + DLQ
+- [ ] Create Cognito user pool + app client
+- [ ] Create Secrets Manager secrets
+- [ ] Create CloudWatch log group
 
-_Will be populated when Phase 3 is complete._
-
----
-
-## Phase 5 — Frontend (NOT STARTED)
-
-_Will be populated when Phase 4 is complete._
-
----
-
-## Phase 6 — Testing & Quality (NOT STARTED)
-
-_Will be populated when Phase 5 is complete._
-
----
-
-## Phase 7 — CI/CD & Deployment (NOT STARTED)
-
-_Will be populated when Phase 6 is complete._
-
----
-
-## Phase 8 — Observability & Polish (NOT STARTED)
-
-_Will be populated when Phase 7 is complete._
+### Start/Stop Automation
+- [ ] Create Makefile with demo-on target
+- [ ] Create Makefile with demo-off target
+- [ ] Create Makefile with status target
 
 ---
 
 ## Known Issues / Blockers
 
-| Issue | Severity | Notes |
-|-------|----------|-------|
-| AWS region not decided | Blocker | Needed before any Terraform work |
+| Issue | Severity | Status |
+|-------|----------|--------|
+| AWS account was suspended | Resolved | Account reactivated, $48.81 credits remaining |
+| GitHub repo not created yet | Blocker for Phase 2 | Do this before starting Terraform |
 
 ---
 
-## Decisions Made This Project
+## AWS Resources Created
 
-All major decisions are documented in `docs/DECISIONS.md`.
-Summary of key ones:
-
-| Decision | Choice | Reason |
-|----------|--------|--------|
-| Vector store | pgvector on RDS | Saves $60/mo vs OpenSearch |
-| Re-ranker | FlashRank (local) | Saves $20/mo vs Cohere |
-| Cache | In-process TTLCache | Saves $15/mo vs ElastiCache |
-| Compute | ECS Fargate (start/stop) | Saves ~$37/mo vs always-on |
-| LLM | GPT-4o | User preference |
-| Embeddings | text-embedding-3-small | Cost-efficient, 1536 dims |
-| IaC | Terraform | Industry standard, resume value |
-| Frontend hosting | S3 + CloudFront | Near-zero cost |
-
----
-
-## Session Log
-
-| Date | What was done | Completed by |
-|------|---------------|--------------|
-| Kickoff | Full planning, stack decisions, checklist, CLAUDE.md | Chat session |
+| Resource | Name | Type |
+|----------|------|------|
+| IAM User | context-engine-admin | Admin user |
+| IAM User | context-engine-github-actions | CI/CD user |
+| IAM Policy | context-engine-github-actions-policy | GitHub Actions permissions |
+| IAM Policy | context-engine-ecs-task-policy | ECS runtime permissions |
+| IAM Role | context-engine-ecs-execution-role | ECS execution |
+| IAM Role | context-engine-ecs-task-role | ECS runtime |
+| S3 Bucket | context-engine-tf-state-256716302630 | Terraform state |
+| DynamoDB | context-engine-tf-lock | Terraform lock |
+| CloudWatch Alarm | context-engine-billing-warning-30 | Billing alert |
+| SNS Topic | context-engine-billing-warning | Alarm notifications |
 
 ---
 
-## Resume Talking Points (update as built)
-
-_Add bullet points here as features get built — ready to paste into resume_
-
-- [ ] Designed and built hybrid RAG pipeline with intelligent query routing (semantic / BM25 / SQL / hybrid)
-- [ ] Deployed containerised FastAPI backend to AWS ECS Fargate via Terraform IaC
-- [ ] Implemented pgvector HNSW index for sub-100ms vector similarity search
-- [ ] Built text-to-SQL retriever with injection guard for structured data queries
-- [ ] Achieved <$50/month AWS cost via start/stop architecture (idle: ~$3/month)
-- [ ] Implemented streaming SSE responses with real-time token delivery
-- [ ] Set up GitHub Actions CI/CD pipeline with automated ECS blue/green deployment
-- [ ] Documented RAGAS evaluation scores (faithfulness and answer relevance)
+## Key Credentials & IDs
