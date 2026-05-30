@@ -12,12 +12,11 @@
 **Tagline:** Hybrid RAG system with intelligent query routing across semantic and structured retrieval pipelines
 **Type:** Solo showcase project (portfolio / resume)
 **Goal:** Demonstrate production-level AI engineering skills to potential employers
+**GitHub:** https://github.com/Omtilekar/context-engine
 
 ---
 
 ## Non-Negotiable Rules
-
-These are locked decisions. Do NOT suggest alternatives, do NOT deviate.
 
 1. **Always read `docs/PROGRESS.md` first** — never assume what is or isn't built
 2. **Never write code without being asked** — confirm the task before starting
@@ -29,52 +28,111 @@ These are locked decisions. Do NOT suggest alternatives, do NOT deviate.
 8. **Commit after every completed task** — use the checklist task name as the commit message
 9. **Never create files outside the project structure** defined in `docs/ARCHITECTURE.md`
 10. **Update `docs/PROGRESS.md`** at the end of every session
+11. **Admin CLI profile:** `context-engine-admin`
+12. **GitHub Actions CLI profile:** `context-engine`
+
+---
+
+## Architecture — 8-Layer Merged System
+
+Merges four paradigms: Vector RAG + Vectorless RAG + Graph RAG + LLM Wiki Memory
+
+### The 8 Layers
+
+```
+Layer 1 — Data Ingestion
+  PDF · DOCX · Web pages · Databases · APIs · Spreadsheets
+
+Layer 2 — Preprocessing Pipeline
+  Cleaning → Chunking + digest → Entity extraction → Storage routing (fans out to all 5 stores)
+
+Layer 3 — Query Understanding + Routing
+  Intent detection → Entity extraction → Query type → Route decision (6 routes) → Confidence
+
+Layer 4 — Hybrid Retrieval (asyncio.gather — all run in parallel)
+  Wiki retrieval · Vector retrieval · BM25 retrieval · Graph retrieval · SQL retrieval
+
+Layer 5 — Merge · Rerank · Compress
+  RRF merger → FlashRank re-ranker → Context compression (digest method)
+
+Layer 6 — Verification + Citation
+  Source grounding → Conflict detection → Confidence scoring → Citation anchors
+
+Layer 7 — GPT-4o Answer Generation
+  Streaming SSE · Structured output · Explainability (why this answer, which route)
+
+Layer 8 — Memory Update (continuous learning)
+  Should this be remembered? → Wiki page update → Graph relation update
+```
+
+### Five Knowledge Stores — all inside ONE RDS PostgreSQL instance
+
+| Store | Technology | Cost |
+|-------|-----------|------|
+| Vector store | pgvector HNSW index | $0 extra |
+| BM25 index | pg_trgm + tsvector GIN index | $0 extra |
+| Graph store | entity_relations table | $0 extra |
+| Wiki / memory | wiki_pages table + S3 markdown | $0 extra |
+| Structured data | raw SQL tables | $0 extra |
+
+### Six Query Routes
+
+1. **wiki** — pre-synthesized pages, fastest, no embedding
+2. **semantic** — pgvector cosine similarity
+3. **bm25** — pg_trgm full-text, exact keyword
+4. **sql** — GPT-4o-mini generates SQL, executes on RDS
+5. **graph** — entity → relations → connected facts
+6. **hybrid** — any combination via asyncio.gather + RRF
 
 ---
 
 ## Locked Tech Stack
 
 ### Backend
-| Component | Choice | Version |
-|-----------|--------|---------|
-| Language | Python | 3.12 |
-| Framework | FastAPI | latest |
-| RAG Framework | LlamaIndex | latest |
-| ORM | SQLAlchemy | 2.x async |
-| Validation | Pydantic | v2 |
-| Task Queue | Celery | latest |
-| Dependency Mgmt | Poetry | latest |
-| Migrations | Alembic | latest |
+| Component | Choice |
+|-----------|--------|
+| Language | Python 3.14 |
+| Framework | FastAPI |
+| RAG Framework | LlamaIndex |
+| ORM | SQLAlchemy 2.x async |
+| Validation | Pydantic v2 |
+| Task Queue | Celery |
+| Dependency Mgmt | Poetry 2.4.1 |
+| Migrations | Alembic |
 
 ### AI / Models
 | Component | Choice | Notes |
 |-----------|--------|-------|
 | LLM (answers) | GPT-4o | Primary |
-| LLM (classifier) | GPT-4o-mini | Fast, cheap |
+| LLM (classifier) | GPT-4o-mini | 6-route classifier |
 | LLM (SQL gen) | GPT-4o-mini | Text-to-SQL |
+| LLM (wiki ingest) | GPT-4o | Quality extraction |
+| LLM (verification) | GPT-4o-mini | Claim checking |
 | Embeddings | text-embedding-3-small | 1536 dims |
-| Re-ranker | FlashRank (local) | ms-marco-MiniLM-L-12-v2 — NOT Cohere |
+| Re-ranker | FlashRank (local) | NOT Cohere |
 | PDF parsing | pdfplumber | |
 | Web scraping | Playwright | Headless |
+| Spreadsheets | openpyxl + pandas | |
 
 ### Database & Storage
 | Component | Choice | Notes |
 |-----------|--------|-------|
 | Primary DB | RDS PostgreSQL 16 | db.t3.micro |
-| Vector search | pgvector extension | HNSW index |
-| Lexical search | pg_trgm + tsvector | BM25-style, GIN index |
+| Vector search | pgvector HNSW | In RDS |
+| Lexical search | pg_trgm + tsvector | In RDS |
+| Graph store | entity_relations table | In RDS — NOT Neo4j |
+| Wiki store | wiki_pages table | In RDS + S3 |
 | Document storage | S3 | Private bucket |
 | Sessions / metadata | DynamoDB | PAY_PER_REQUEST |
-| Cache | TTLCache (in-process) | NOT Redis / ElastiCache |
+| Cache | TTLCache (in-process) | NOT Redis |
 
 ### Frontend
 | Component | Choice |
 |-----------|--------|
-| Framework | React 18 |
+| Framework | React 18 + Vite |
 | Language | TypeScript |
-| Build tool | Vite |
 | Styling | Tailwind CSS |
-| State management | Zustand |
+| State | Zustand |
 | API client | TanStack Query |
 | Streaming | SSE (EventSource) |
 | Package manager | pnpm |
@@ -82,55 +140,50 @@ These are locked decisions. Do NOT suggest alternatives, do NOT deviate.
 ### AWS Infrastructure
 | Service | Purpose |
 |---------|---------|
-| ECS Fargate | API container (0.25 vCPU / 0.5 GB RAM) |
-| ECR | Container image registry |
-| RDS PostgreSQL | Primary database + pgvector |
-| S3 (documents) | Raw uploaded files |
-| S3 (frontend) | React build artifacts |
-| CloudFront | CDN for frontend |
-| ALB | Load balancer for ECS |
-| SQS | Ingestion job queue |
-| SQS DLQ | Dead-letter queue for failed jobs |
-| DynamoDB | Sessions and query logs |
-| Cognito | User authentication |
-| Secrets Manager | API keys and DB credentials |
-| CloudWatch | Logs, metrics, alarms |
-| X-Ray | Distributed tracing |
-| WAF | Web application firewall |
+| ECS Fargate | API container (0.25 vCPU / 0.5 GB) |
+| ECR | Container registry |
+| RDS PostgreSQL 16 | All 5 knowledge stores |
+| S3 (documents) | Raw uploads |
+| S3 (frontend) | React build |
+| S3 (wiki) | Markdown backups |
+| CloudFront | Frontend CDN |
+| ALB | Load balancer |
+| SQS + DLQ | Ingestion queue |
+| DynamoDB | Sessions + query logs |
+| Cognito | Auth |
+| Secrets Manager | API keys + DB creds |
+| CloudWatch | Logs + metrics |
+| X-Ray | Tracing |
 
 ### DevOps
 | Component | Choice |
 |-----------|--------|
-| IaC | Terraform (NOT CDK, NOT SAM, NOT CloudFormation) |
+| IaC | Terraform |
 | CI/CD | GitHub Actions |
 | Containers | Docker |
-| Linting (Python) | Ruff |
+| Python linting | Ruff |
 | Type checking | mypy |
 | Testing | pytest + httpx |
-| Linting (TS) | ESLint |
+| TS linting | ESLint |
 
 ---
 
 ## AWS Configuration
 
 ```
-Region:           us-east-1
-Resource prefix:  context-engine-*
-Account:          (your AWS account ID)
-Terraform state:  s3://context-engine-tf-state-<account-id>
-TF lock table:    context-engine-tf-lock
+Region:              us-east-1
+Resource prefix:     context-engine-*
+Account ID:          256716302630
+Terraform state:     s3://context-engine-tf-state-256716302630
+TF lock table:       context-engine-tf-lock
+Admin CLI profile:   context-engine-admin
+CI/CD CLI profile:   context-engine
 ```
 
 ### Resource Naming Convention
-All AWS resources MUST follow this pattern:
 ```
 context-engine-{environment}-{resource-type}
 ```
-Examples:
-- `context-engine-prod-vpc`
-- `context-engine-prod-rds`
-- `context-engine-prod-ecs-cluster`
-- `context-engine-staging-s3-documents`
 
 ---
 
@@ -138,57 +191,65 @@ Examples:
 
 ```
 context-engine/
-├── CLAUDE.md                    ← You are here
-├── Makefile                     ← demo-on / demo-off / status commands
-├── docker-compose.yml           ← Local dev environment
-├── .env.example                 ← All required env vars (no real values)
+├── CLAUDE.md
+├── Makefile
+├── docker-compose.yml
+├── .env.example
 ├── .gitignore
 ├── README.md
-│
 ├── backend/
 │   ├── pyproject.toml
 │   ├── Dockerfile
 │   ├── alembic/
-│   ├── app/
-│   │   ├── main.py              ← FastAPI entry point
-│   │   ├── api/                 ← Route handlers
-│   │   │   ├── query.py         ← POST /api/v1/query (SSE streaming)
-│   │   │   ├── ingest.py        ← POST /api/v1/ingest/*
-│   │   │   ├── documents.py     ← GET/DELETE /api/v1/documents
-│   │   │   ├── analytics.py     ← GET /api/v1/analytics/*
-│   │   │   └── auth.py          ← POST /auth/token
-│   │   ├── core/
-│   │   │   ├── config.py        ← Pydantic BaseSettings
-│   │   │   ├── database.py      ← SQLAlchemy async engine
-│   │   │   ├── auth.py          ← Cognito JWT verification
-│   │   │   └── pipeline.py      ← Main RAG orchestrator
-│   │   ├── retrievers/
-│   │   │   ├── vector.py        ← pgvector cosine search
-│   │   │   ├── bm25.py          ← PostgreSQL FTS
-│   │   │   ├── sql.py           ← Text-to-SQL retriever
-│   │   │   ├── merger.py        ← RRF hybrid fusion
-│   │   │   └── reranker.py      ← FlashRank re-ranker
-│   │   ├── router/
-│   │   │   └── classifier.py    ← GPT-4o-mini query classifier
-│   │   ├── ingestion/
-│   │   │   ├── base.py          ← Abstract BaseIngester
-│   │   │   ├── pdf.py           ← pdfplumber ingester
-│   │   │   ├── web.py           ← Playwright ingester
-│   │   │   ├── db.py            ← SQL table ingester
-│   │   │   ├── chunker.py       ← 512 token / 64 overlap
-│   │   │   └── embedder.py      ← OpenAI batch embedder
-│   │   ├── llm/
-│   │   │   ├── client.py        ← Async OpenAI wrapper
-│   │   │   └── prompts.py       ← Prompt templates
-│   │   ├── models/
-│   │   │   ├── db.py            ← SQLAlchemy models
-│   │   │   └── schemas.py       ← Pydantic request/response
-│   │   └── utils/
-│   │       ├── cache.py         ← TTLCache wrapper
-│   │       └── logging.py       ← Structured JSON logger
-│   └── workers/
-│       └── ingest_worker.py     ← Celery task definitions
-│
+│   └── app/
+│       ├── main.py
+│       ├── api/
+│       │   ├── query.py
+│       │   ├── ingest.py
+│       │   ├── documents.py
+│       │   ├── analytics.py
+│       │   └── auth.py
+│       ├── core/
+│       │   ├── config.py
+│       │   ├── database.py
+│       │   ├── auth.py
+│       │   └── pipeline.py        ← 8-layer orchestrator
+│       ├── retrievers/
+│       │   ├── vector.py
+│       │   ├── bm25.py
+│       │   ├── sql.py
+│       │   ├── graph.py           ← NEW
+│       │   ├── wiki.py            ← NEW
+│       │   ├── merger.py
+│       │   └── reranker.py
+│       ├── router/
+│       │   └── classifier.py      ← 6 routes
+│       ├── ingestion/
+│       │   ├── base.py
+│       │   ├── pdf.py
+│       │   ├── web.py
+│       │   ├── db.py
+│       │   ├── api_ingester.py    ← NEW
+│       │   ├── spreadsheet.py     ← NEW
+│       │   ├── chunker.py
+│       │   ├── embedder.py
+│       │   ├── entity_extractor.py ← NEW
+│       │   └── wiki_builder.py    ← NEW
+│       ├── verification/          ← NEW module
+│       │   ├── grounding.py
+│       │   ├── conflicts.py
+│       │   └── confidence.py
+│       ├── memory/                ← NEW module
+│       │   └── updater.py
+│       ├── llm/
+│       │   ├── client.py
+│       │   └── prompts.py
+│       ├── models/
+│       │   ├── db.py
+│       │   └── schemas.py
+│       └── utils/
+│           ├── cache.py
+│           └── logging.py
 ├── frontend/
 │   ├── package.json
 │   ├── Dockerfile
@@ -197,16 +258,13 @@ context-engine/
 │       ├── components/
 │       ├── hooks/
 │       ├── services/
-│       │   ├── api.ts           ← Typed fetch wrapper
-│       │   └── sse.ts           ← SSE client
-│       ├── stores/              ← Zustand stores
-│       └── types/               ← TypeScript interfaces
-│
+│       ├── stores/
+│       └── types/
 ├── infra/
 │   ├── main.tf
 │   ├── variables.tf
 │   ├── outputs.tf
-│   ├── versions.tf              ← Provider pins + S3 backend config
+│   ├── versions.tf
 │   ├── modules/
 │   │   ├── vpc/
 │   │   ├── ecs/
@@ -218,136 +276,129 @@ context-engine/
 │   └── envs/
 │       ├── staging/
 │       └── prod/
-│
 ├── docs/
-│   ├── PROGRESS.md              ← Current status — read every session
-│   ├── ARCHITECTURE.md          ← System design decisions
-│   ├── DECISIONS.md             ← Why we chose each technology
-│   └── CONVENTIONS.md           ← Naming rules and code style
-│
+│   ├── PROGRESS.md
+│   ├── ARCHITECTURE.md
+│   ├── DECISIONS.md
+│   └── CONVENTIONS.md
 └── .github/
     └── workflows/
-        ├── ci.yml               ← Runs on PR to main
-        └── deploy.yml           ← Runs on push to main
+        ├── ci.yml
+        └── deploy.yml
 ```
 
 ---
 
 ## Cost Constraints
 
-**Hard budget: $50/month maximum**
+**Hard budget: $50/month**
 
 | State | Cost |
 |-------|------|
-| Idle (stopped) | ~$2–5/month |
-| Active (demo day) | ~$7–10/day |
-| Target: 5 demo days/month | ~$35–45/month |
+| Idle | ~$2–5/month |
+| Active demo day | ~$7–10/day |
+| 5 demo days/month | ~$35–45/month |
+| AWS credits | $48.81 remaining (expires Nov 2026) |
 
-### Start/Stop Model
-- ECS service: stop when not demoing (`desired_count = 0`)
-- RDS instance: stop via console or CLI when not demoing
-- Frontend (S3 + CloudFront): always live, ~$0 cost
-- `make demo-on` → spins up ECS + RDS (~4 min)
-- `make demo-off` → stops ECS + RDS
-
-### Cost Alerts
-- CloudWatch billing alarm at $30 (warning)
-- CloudWatch billing alarm at $45 (critical)
-
----
-
-## RAG Pipeline Summary
-
-```
-User query
-    │
-    ▼
-Query Classifier (GPT-4o-mini)
-    │
-    ├── semantic ──► Vector Retriever (pgvector cosine)
-    ├── structured ► BM25 Retriever (pg_trgm FTS) + SQL Retriever (text-to-SQL)
-    └── hybrid ────► Both pipelines (asyncio.gather) → RRF Merger
-                                                              │
-                                                              ▼
-                                                    FlashRank Re-ranker
-                                                    (top-10 → top-3)
-                                                              │
-                                                              ▼
-                                                    Prompt Builder
-                                                    (system + context + query)
-                                                              │
-                                                              ▼
-                                                    GPT-4o (streaming SSE)
-                                                              │
-                                                              ▼
-                                                    Answer + citations
+```bash
+make demo-on    # Start ECS + RDS (~4 min)
+make demo-off   # Stop ECS + RDS
+make status     # Check state
 ```
 
 ---
 
-## Key Implementation Details
+## Key Database Schema
 
-### pgvector Setup
 ```sql
+-- Enable extensions
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
--- HNSW index (faster than ivfflat for this scale)
+
+-- Vector index
 CREATE INDEX ON chunks USING hnsw (embedding vector_cosine_ops);
--- GIN index for FTS
 CREATE INDEX ON chunks USING gin(to_tsvector('english', content));
+
+-- Graph store (NEW)
+CREATE TABLE entity_relations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  entity_a VARCHAR(255) NOT NULL,
+  relation_type VARCHAR(100) NOT NULL,
+  entity_b VARCHAR(255) NOT NULL,
+  source_chunk_id UUID REFERENCES chunks(id),
+  confidence FLOAT DEFAULT 1.0,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+CREATE INDEX ON entity_relations (entity_a);
+CREATE INDEX ON entity_relations (entity_b);
+
+-- Wiki store (NEW)
+CREATE TABLE wiki_pages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title VARCHAR(255) UNIQUE NOT NULL,
+  content TEXT NOT NULL,
+  tags TEXT[] DEFAULT '{}',
+  source_ids UUID[] DEFAULT '{}',
+  wikilinks TEXT[] DEFAULT '{}',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
 ```
 
-### Query Classifier Output Format
+## Query Classifier Output (6 routes)
 ```json
 {
-  "route": "semantic" | "structured" | "hybrid",
-  "confidence": 0.0–1.0,
-  "reasoning": "brief explanation"
+  "route": "wiki|semantic|bm25|sql|graph|hybrid",
+  "confidence": 0.0,
+  "reasoning": "brief explanation",
+  "entities": ["extracted", "entities"]
 }
 ```
 
-### SSE Event Format
+## SSE Event Format
 ```
 event: route
-data: {"decision": "hybrid", "confidence": 0.92}
+data: {"decision": "hybrid", "confidence": 0.92, "retrievers": ["wiki", "vector"]}
 
 event: token
-data: {"text": "Based on"}
+data: {"text": "token"}
+
+event: verification
+data: {"grounded": true, "conflicts": [], "confidence": 0.89}
 
 event: sources
-data: [{"title": "...", "page": 3, "score": 0.94}]
+data: [{"title": "...", "score": 0.94, "type": "wiki|vector|graph|sql"}]
 
 event: done
 data: {"tokens_used": 312, "cost_usd": 0.0031}
 ```
 
-### SQL Injection Guard
-- Only SELECT statements allowed
-- Block: DROP, DELETE, INSERT, UPDATE, TRUNCATE, ALTER, CREATE
-- Max rows returned: 50
-- Timeout: 5 seconds
+## SQL Injection Guard
+- SELECT only — block DROP, DELETE, INSERT, UPDATE, TRUNCATE, ALTER, CREATE
+- Max 50 rows · 5 second timeout
 
 ---
 
-## Demo Script (for interviews)
+## Demo Script (interviews)
 
 1. Open `https://<cloudfront-url>/demo`
-2. Show pre-loaded documents (1 PDF, 1 URL, 1 DB table)
-3. Run a **semantic query** → show Vector route badge
-4. Run a **structured query** (exact keyword) → show BM25 route badge
-5. Run a **SQL query** (e.g. "how many records...") → show SQL route badge
-6. Run an **ambiguous query** → show Hybrid route badge + RRF merger
-7. Point to source citations panel
-8. Show analytics dashboard (route distribution chart)
-9. Show GitHub → CI/CD pipeline → Terraform code
+2. Show 4 pre-loaded sources (PDF, URL, DB table, spreadsheet)
+3. Wiki query → Wiki route badge (fastest)
+4. Semantic query → Vector route badge
+5. Exact keyword → BM25 route badge
+6. "How many records..." → SQL route badge
+7. "Who works with X?" → Graph route badge
+8. Ambiguous query → Hybrid route + RRF merger
+9. Show verification panel — confidence + conflict detection
+10. Show analytics dashboard
+11. Show GitHub → CI/CD → Terraform
 
 ---
 
 ## Session End Checklist
 
-Before ending any Claude Code session:
-- [ ] All written code is committed with descriptive message
-- [ ] `docs/PROGRESS.md` updated with what was completed
-- [ ] Next task clearly noted in PROGRESS.md
-- [ ] No `.env` files or secrets committed
-- [ ] No broken tests left behind
+- [ ] Code committed with descriptive message
+- [ ] `docs/PROGRESS.md` updated
+- [ ] Next task noted in PROGRESS.md
+- [ ] No `.env` or secrets committed
+- [ ] No broken tests

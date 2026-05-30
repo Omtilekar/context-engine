@@ -7,9 +7,9 @@
 
 ## Current Status
 
-**Overall:** Phase 1 complete — starting Phase 2 (Terraform Infrastructure)
-**Last updated:** May 29, 2026
-**Next task:** GitHub repo setup → then Terraform VPC module
+**Overall:** Phase 1 complete · Phase 2 starting
+**Last updated:** May 30, 2026
+**Next task:** Phase 2 — Task 1: Create infra/ Terraform root module structure
 
 ---
 
@@ -18,7 +18,7 @@
 | Phase | Status | Tasks Done | Total Tasks |
 |-------|--------|------------|-------------|
 | Phase 0 — Planning | COMPLETE | — | — |
-| Phase 1 — AWS Account Setup | COMPLETE | 23 | 23 |
+| Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
 | Phase 2 — Terraform Infrastructure | NOT STARTED | 0 | 47 |
 | Phase 3 — Backend RAG Engine | NOT STARTED | 0 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
@@ -29,142 +29,211 @@
 
 ---
 
+## Architecture Version
+
+**Current:** v2 — 8-layer merged architecture
+- Layer 1: Data ingestion (PDF, DOCX, Web, DB, API, Spreadsheet)
+- Layer 2: Preprocessing (clean → chunk+digest → entity extract → fan-out to 5 stores)
+- Layer 3: Query understanding + routing (6 routes)
+- Layer 4: Hybrid retrieval (wiki + vector + BM25 + graph + SQL in parallel)
+- Layer 5: Merge + rerank + compress (RRF → FlashRank → context compression)
+- Layer 6: Verification + citation (source grounding + conflict detection + confidence)
+- Layer 7: GPT-4o answer generation (SSE streaming + structured output + explainability)
+- Layer 8: Memory update (continuous learning → wiki + graph update)
+
+**Five knowledge stores — all in one RDS PostgreSQL instance:**
+- pgvector (vector search)
+- pg_trgm + tsvector (BM25)
+- entity_relations table (Graph RAG)
+- wiki_pages table (LLM Wiki / Memory)
+- raw SQL tables (structured data)
+
+---
+
 ## Completed Tasks
 
 ### Phase 0 — Planning (complete)
 - [x] Project named: ContextEngine
 - [x] Tagline decided
-- [x] GitHub repo name: `context-engine`
+- [x] GitHub repo: github.com/Omtilekar/context-engine (public)
 - [x] AWS resource prefix: `context-engine-*`
-- [x] Full tech stack locked (see CLAUDE.md)
+- [x] Full tech stack locked
 - [x] Cost strategy locked ($50/month, start/stop model)
-- [x] 272-task checklist created (Hybrid_RAG_Project_Checklist.xlsx)
-- [x] CLAUDE.md created
-- [x] PROGRESS.md created
-- [x] Architecture upgraded — merged Vector RAG + Vectorless RAG + LLM Wiki + Graph RAG + Verification layer
+- [x] 272-task checklist created
+- [x] CLAUDE.md, PROGRESS.md, ARCHITECTURE.md, DECISIONS.md, CONVENTIONS.md created
+- [x] Architecture upgraded to v2 — 8-layer merged system
 
 ### Phase 1 — AWS Account Setup (complete)
 
 #### IAM & Security
-- [x] Created IAM admin user: `context-engine-admin`
-- [x] Enabled MFA on root account
-- [x] Enabled MFA on `context-engine-admin`
-- [x] Created IAM policy for GitHub Actions: `context-engine-github-actions-policy`
-- [x] Created IAM user for GitHub Actions: `context-engine-github-actions`
-- [x] Created ECS execution role: `context-engine-ecs-execution-role`
-- [x] Created ECS task role: `context-engine-ecs-task-role` with `context-engine-ecs-task-policy`
+- [x] IAM admin user: `context-engine-admin`
+- [x] MFA on root account
+- [x] MFA on `context-engine-admin`
+- [x] IAM policy for GitHub Actions: `context-engine-github-actions-policy`
+- [x] IAM user for GitHub Actions: `context-engine-github-actions`
+- [x] ECS execution role: `context-engine-ecs-execution-role`
+- [x] ECS task role: `context-engine-ecs-task-role`
 
 #### Billing & Alerts
-- [x] Enabled IAM access to billing
-- [x] Created billing alarm at $30: `context-engine-billing-warning-30`
-- [x] Enabled Cost Explorer
-- [x] Enabled Free Tier alerts
-- [x] Tagging strategy locked: Project=context-engine
+- [x] IAM billing access enabled
+- [x] Billing alarm at $30: `context-engine-billing-warning-30`
+- [x] Cost Explorer enabled
+- [x] Free Tier alerts enabled
+- [x] Tagging strategy: Project=context-engine
 
-#### Local Tooling
-- [x] AWS CLI v2 installed and verified
-- [x] AWS CLI profile configured: `context-engine-admin` (admin) + `context-engine` (github-actions)
-- [x] Terraform 1.15.5 installed
-- [x] Docker 28.5.1 installed
-- [x] Python 3.14.3 installed
-- [x] Poetry 2.4.1 installed
-- [x] Node v24 + pnpm installed
-- [x] Make 4.4.1 installed
+#### Local Tooling (Windows 11)
+- [x] AWS CLI v2
+- [x] AWS CLI profiles: `context-engine-admin` + `context-engine`
+- [x] Terraform 1.15.5
+- [x] Docker 28.5.1
+- [x] Python 3.14.3
+- [x] Poetry 2.4.1
+- [x] Node v24 + pnpm
+- [x] Make 4.4.1
 
 #### Terraform State Bootstrap
-- [x] S3 bucket created: `context-engine-tf-state-256716302630`
-- [x] Versioning enabled on state bucket
-- [x] Encryption enabled on state bucket (AES256)
-- [x] Public access blocked on state bucket
-- [x] DynamoDB lock table created: `context-engine-tf-lock`
+- [x] S3 bucket: `context-engine-tf-state-256716302630` (versioned + encrypted + private)
+- [x] DynamoDB lock table: `context-engine-tf-lock`
+
+#### GitHub Repo Setup
+- [x] Repository created: github.com/Omtilekar/context-engine (public)
+- [x] GitHub Actions secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, OPENAI_API_KEY
+- [x] .gitignore created
+- [x] CLAUDE.md + docs/ committed and pushed
 
 ---
 
-## In Progress
-
-### Phase 1 — GitHub Repo Setup (remaining)
-- [ ] Create GitHub repository: `context-engine` (public)
-- [ ] Add branch protection on main
-- [ ] Add GitHub Actions secrets
-- [ ] Create .gitignore
-- [ ] Push CLAUDE.md and docs/ as first commit
-
----
-
-## Phase 2 — Terraform Infrastructure (NOT STARTED)
+## Phase 2 — Terraform Infrastructure (NEXT)
 
 ### Project Structure
 - [ ] Create infra/ root module (main.tf, variables.tf, outputs.tf, versions.tf)
 - [ ] Create infra/modules/ subfolders (vpc, ecs, rds, s3, cloudfront, cognito, cloudwatch)
-- [ ] Create infra/envs/staging/ and prod/
-- [ ] Configure Terraform backend (S3 + DynamoDB)
-- [ ] Pin all provider versions
+- [ ] Create infra/envs/prod/
+- [ ] Configure Terraform backend (S3 + DynamoDB state)
+- [ ] Pin provider versions (aws ~> 5.0)
 
 ### VPC Module
-- [ ] Create VPC (CIDR 10.0.0.0/16)
-- [ ] Create 2 public subnets
-- [ ] Create 2 private subnets
-- [ ] Create Internet Gateway
-- [ ] Create NAT Gateway (1x)
-- [ ] Create route tables
-- [ ] Create security groups (ALB, ECS, RDS)
+- [ ] VPC (CIDR 10.0.0.0/16)
+- [ ] 2 public subnets (ALB + NAT)
+- [ ] 2 private subnets (ECS + RDS)
+- [ ] Internet Gateway
+- [ ] NAT Gateway (1x — single AZ saves cost)
+- [ ] Public + private route tables
+- [ ] Security group: ALB (80/443 inbound)
+- [ ] Security group: ECS (8000 from ALB only)
+- [ ] Security group: RDS (5432 from ECS only)
 
 ### RDS Module
-- [ ] Create RDS subnet group
-- [ ] Create RDS PostgreSQL 16 (db.t3.micro)
-- [ ] Store DB password in Secrets Manager
-- [ ] Enable automated backups
+- [ ] RDS subnet group (both private subnets)
+- [ ] RDS PostgreSQL 16 (db.t3.micro, 20GB gp3)
+- [ ] DB password in Secrets Manager
+- [ ] Automated backups (1 day retention)
+- [ ] Enable pgvector + pg_trgm via Alembic migration (not Terraform)
 
 ### ECS Module
-- [ ] Create ECS cluster
-- [ ] Create ECS task definition
-- [ ] Create ECS service
-- [ ] Create ALB + target group + listener
-- [ ] Create ECR repository
+- [ ] ECS cluster: `context-engine-prod-ecs-cluster`
+- [ ] ECS task definition (0.25 vCPU, 0.5 GB)
+- [ ] ECS service (desired count 1, in private subnets)
+- [ ] ALB + target group + listener
+- [ ] ECR repository: `context-engine-backend`
 
 ### S3 & CloudFront
-- [ ] Create S3 bucket for frontend
-- [ ] Create S3 bucket for documents
-- [ ] Create CloudFront distribution
+- [ ] S3 frontend bucket (private, OAC for CloudFront)
+- [ ] S3 documents bucket (private)
+- [ ] S3 wiki bucket (private)
+- [ ] CloudFront distribution (OAC + SPA routing)
 
 ### Supporting Services
-- [ ] Create DynamoDB table for sessions
-- [ ] Create SQS queue + DLQ
-- [ ] Create Cognito user pool + app client
-- [ ] Create Secrets Manager secrets
-- [ ] Create CloudWatch log group
+- [ ] DynamoDB: `context-engine-prod-sessions` (PAY_PER_REQUEST)
+- [ ] SQS queue: `context-engine-prod-ingest-queue`
+- [ ] SQS DLQ: `context-engine-prod-ingest-dlq`
+- [ ] Cognito user pool + app client
+- [ ] Secrets Manager: OPENAI_API_KEY, DB_PASSWORD
+- [ ] CloudWatch log group (7 day retention)
 
 ### Start/Stop Automation
-- [ ] Create Makefile with demo-on target
-- [ ] Create Makefile with demo-off target
-- [ ] Create Makefile with status target
+- [ ] Makefile: demo-on (start ECS + RDS)
+- [ ] Makefile: demo-off (stop ECS + RDS)
+- [ ] Makefile: status (check running state)
+- [ ] Health check poll in demo-on
 
 ---
 
-## Known Issues / Blockers
+## Phase 3 — Backend RAG Engine (NOT STARTED)
 
-| Issue | Severity | Status |
-|-------|----------|--------|
-| AWS account was suspended | Resolved | Account reactivated, $48.81 credits remaining |
-| GitHub repo not created yet | Blocker for Phase 2 | Do this before starting Terraform |
+Will be detailed when Phase 2 is complete. Key additions vs original plan:
+- `retrievers/graph.py` — Graph RAG via entity_relations table
+- `retrievers/wiki.py` — Wiki page retrieval
+- `ingestion/entity_extractor.py` — GPT-4o-mini entity extraction
+- `ingestion/wiki_builder.py` — LLM Wiki page builder (Karpathy method)
+- `verification/` module — grounding + conflict detection + confidence
+- `memory/updater.py` — continuous learning layer
 
 ---
 
 ## AWS Resources Created
 
-| Resource | Name | Type |
-|----------|------|------|
-| IAM User | context-engine-admin | Admin user |
-| IAM User | context-engine-github-actions | CI/CD user |
-| IAM Policy | context-engine-github-actions-policy | GitHub Actions permissions |
-| IAM Policy | context-engine-ecs-task-policy | ECS runtime permissions |
-| IAM Role | context-engine-ecs-execution-role | ECS execution |
-| IAM Role | context-engine-ecs-task-role | ECS runtime |
-| S3 Bucket | context-engine-tf-state-256716302630 | Terraform state |
-| DynamoDB | context-engine-tf-lock | Terraform lock |
-| CloudWatch Alarm | context-engine-billing-warning-30 | Billing alert |
-| SNS Topic | context-engine-billing-warning | Alarm notifications |
+| Resource | Name | Type | Status |
+|----------|------|------|--------|
+| IAM User | context-engine-admin | Admin | Active |
+| IAM User | context-engine-github-actions | CI/CD | Active |
+| IAM Policy | context-engine-github-actions-policy | Permissions | Active |
+| IAM Policy | context-engine-ecs-task-policy | Permissions | Active |
+| IAM Role | context-engine-ecs-execution-role | ECS | Active |
+| IAM Role | context-engine-ecs-task-role | ECS | Active |
+| S3 Bucket | context-engine-tf-state-256716302630 | TF State | Active |
+| DynamoDB | context-engine-tf-lock | TF Lock | Active |
+| CloudWatch Alarm | context-engine-billing-warning-30 | Billing | Active |
+| SNS Topic | context-engine-billing-warning | Notifications | Active |
 
 ---
 
 ## Key Credentials & IDs
+
+```
+AWS Account ID:      256716302630
+AWS Region:          us-east-1
+TF State Bucket:     context-engine-tf-state-256716302630
+TF Lock Table:       context-engine-tf-lock
+Admin CLI Profile:   context-engine-admin
+CI/CD CLI Profile:   context-engine
+GitHub Repo:         https://github.com/Omtilekar/context-engine
+AWS Credits:         $48.81 remaining (expires Nov 29, 2026)
+OS:                  Windows 11
+Project path:        C:\Om\Codes\context_engine
+```
+
+---
+
+## Known Issues / Resolved
+
+| Issue | Status |
+|-------|--------|
+| AWS account suspended (free plan ended) | Resolved — upgraded, $48.81 credits active |
+| InvalidClientTokenId on CLI | Resolved — created context-engine-admin access keys |
+
+---
+
+## Session Log
+
+| Date | What was done |
+|------|---------------|
+| May 29, 2026 | Full planning, stack decisions, 8-layer architecture design |
+| May 29, 2026 | Phase 1 complete — IAM, billing, tooling, TF state, GitHub |
+| May 30, 2026 | Updated all docs to v2 architecture (Graph RAG + Wiki + Verification + Memory) |
+
+---
+
+## Resume Talking Points (check off as built)
+
+- [ ] Designed 8-layer hybrid context engine merging Vector RAG, Vectorless RAG, Graph RAG, and LLM Wiki Memory
+- [ ] Built 6-route query classifier (wiki, semantic, BM25, SQL, graph, hybrid) using GPT-4o-mini
+- [ ] Implemented 5 knowledge stores in single PostgreSQL instance (pgvector, pg_trgm, entity_relations, wiki_pages, SQL)
+- [ ] Built Karpathy-inspired LLM Wiki layer with chunking digest method for knowledge accumulation
+- [ ] Implemented Graph RAG via entity relationship traversal (no Neo4j — pure PostgreSQL)
+- [ ] Added verification layer with source grounding, conflict detection, and confidence scoring
+- [ ] Built continuous memory update layer — system learns from every conversation
+- [ ] Deployed on AWS ECS Fargate via Terraform IaC with GitHub Actions CI/CD
+- [ ] Achieved <$50/month AWS cost via start/stop architecture (idle: ~$3/month)
+- [ ] Implemented streaming SSE responses with real-time token delivery
+- [ ] Documented RAGAS evaluation scores (faithfulness + answer relevance)
