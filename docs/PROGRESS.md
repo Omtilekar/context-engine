@@ -9,7 +9,7 @@
 
 **Overall:** Phase 2 infrastructure code complete · Phase 3 backend foundation in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 3 — Task 2: Add Alembic setup and initial database migration
+**Next task:** Phase 3 — Task 3: Add Docker Compose local dev with pgvector PostgreSQL
 
 ---
 
@@ -20,7 +20,7 @@
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
 | Phase 2 — Terraform Infrastructure | APPLY DEFERRED | 41 | 47 |
-| Phase 3 — Backend RAG Engine | IN PROGRESS | 11 | 63 |
+| Phase 3 — Backend RAG Engine | IN PROGRESS | 14 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
 | Phase 6 — Testing & Quality | NOT STARTED | 0 | 22 |
@@ -180,8 +180,12 @@
 - [x] Add backend Dockerfile and local run instructions
 - [x] Add minimal tests for health and query placeholders
 
+### Alembic + Database Schema
+- [x] Alembic async PostgreSQL setup
+- [x] Initial migration for vector/pg_trgm extensions, documents, chunks, graph, wiki, retrieval runs, query logs
+- [x] Migration tests that do not require live RDS
+
 ### Next Backend Tasks
-- [ ] Alembic setup + initial migration for extensions, tables, and indexes
 - [ ] Docker Compose local dev setup with pgvector PostgreSQL
 - [ ] Expand unit tests for route heuristics and chunking
 - [ ] Add real retriever implementations one at a time
@@ -253,6 +257,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Terraform fmt and offline validate passed; remote init/plan blocked by invalid AWS profile token |
 | May 31, 2026 | Terraform remote init, validate, and plan passed — 60 to add, 0 to change, 0 to destroy |
 | May 31, 2026 | Phase 3 backend foundation complete — FastAPI app, config, DB, retrieval, ingestion, verification skeletons |
+| May 31, 2026 | Phase 3 Alembic setup complete — async migration env, initial schema migration, offline migration tests |
 
 ---
 
