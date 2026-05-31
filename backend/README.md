@@ -10,6 +10,46 @@ poetry install
 poetry run uvicorn app.main:app --reload --port 8000
 ```
 
+## Docker Compose Local Stack
+
+First-time setup:
+
+```powershell
+Copy-Item backend\.env.example backend\.env
+```
+
+Start local PostgreSQL with pgvector and the FastAPI backend:
+
+```powershell
+make local-up
+```
+
+Run migrations against the local Compose database:
+
+```powershell
+make local-migrate
+```
+
+Test the health endpoint:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing http://localhost:8000/health
+```
+
+Stop the local stack:
+
+```powershell
+make local-down
+```
+
+Useful local commands:
+
+```powershell
+make local-logs
+make local-test
+docker compose config
+```
+
 ## Checks
 
 ```powershell

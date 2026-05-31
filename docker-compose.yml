@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: context-engine-postgres
+    environment:
+      POSTGRES_DB: context_engine
+      POSTGRES_USER: context_engine
+      POSTGRES_PASSWORD: context_engine_dev_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U context_engine -d context_engine"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: context-engine-backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment:
+      AWS_REGION: us-east-1
+      DATABASE_URL: postgresql+asyncpg://context_engine:context_engine_dev_password@postgres:5432/context_engine
+      ENVIRONMENT: development
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/alembic:/app/alembic
+      - ./backend/alembic.ini:/app/alembic.ini
+      - ./backend/app:/app/app
+
+volumes:
+  postgres_data:
+

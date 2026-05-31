@@ -8,7 +8,7 @@ ECS_SERVICE := $(PROJECT)-$(ENVIRONMENT)-api
 RDS_INSTANCE := $(PROJECT)-$(ENVIRONMENT)-rds
 ALB_NAME := $(PROJECT)-$(ENVIRONMENT)-alb
 
-.PHONY: demo-on demo-off status
+.PHONY: demo-on demo-off local-down local-logs local-migrate local-test local-up status
 
 demo-on:
 	-aws rds start-db-instance --db-instance-identifier $(RDS_INSTANCE) --profile $(AWS_PROFILE) --region $(AWS_REGION)
@@ -26,3 +26,21 @@ status:
 	aws rds describe-db-instances --db-instance-identifier $(RDS_INSTANCE) --query "DBInstances[0].DBInstanceStatus" --output text --profile $(AWS_PROFILE) --region $(AWS_REGION)
 	aws ecs describe-services --cluster $(ECS_CLUSTER) --services $(ECS_SERVICE) --query "services[0].{status:status,desired:desiredCount,running:runningCount,pending:pendingCount}" --output table --profile $(AWS_PROFILE) --region $(AWS_REGION)
 
+local-up:
+	docker compose up --build -d --wait postgres backend
+
+local-down:
+	docker compose down
+
+local-logs:
+	docker compose logs -f postgres backend
+
+local-migrate:
+	docker compose up -d --wait postgres
+	docker compose run --rm backend alembic upgrade head
+
+local-test:
+	cd backend && .\.venv\Scripts\python.exe -m ruff format .
+	cd backend && .\.venv\Scripts\python.exe -m ruff check .
+	cd backend && .\.venv\Scripts\python.exe -m mypy app
+	cd backend && .\.venv\Scripts\python.exe -m pytest
