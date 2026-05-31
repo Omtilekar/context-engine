@@ -9,7 +9,7 @@
 
 **Overall:** Phase 1 complete · Phase 2 in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 2 — Task 3: Build RDS module
+**Next task:** Phase 2 — Task 4: Build ECS module
 
 ---
 
@@ -19,7 +19,7 @@
 |-------|--------|------------|-------------|
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
-| Phase 2 — Terraform Infrastructure | IN PROGRESS | 14 | 47 |
+| Phase 2 — Terraform Infrastructure | IN PROGRESS | 19 | 47 |
 | Phase 3 — Backend RAG Engine | NOT STARTED | 0 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
@@ -124,11 +124,11 @@
 - [x] Security group: RDS (5432 from ECS only)
 
 ### RDS Module
-- [ ] RDS subnet group (both private subnets)
-- [ ] RDS PostgreSQL 16 (db.t3.micro, 20GB gp3)
-- [ ] DB password in Secrets Manager
-- [ ] Automated backups (1 day retention)
-- [ ] Enable pgvector + pg_trgm via Alembic migration (not Terraform)
+- [x] RDS subnet group (both private subnets)
+- [x] RDS PostgreSQL 16 (db.t3.micro, 20GB gp3)
+- [x] DB password in Secrets Manager
+- [x] Automated backups (1 day retention)
+- [x] Enable pgvector + pg_trgm via Alembic migration (not Terraform)
 
 ### ECS Module
 - [ ] ECS cluster: `context-engine-prod-ecs-cluster`
@@ -224,6 +224,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 30, 2026 | Updated all docs to v2 architecture (Graph RAG + Wiki + Verification + Memory) |
 | May 31, 2026 | Phase 2 Task 1 complete — Terraform root structure, backend config, provider pinning |
 | May 31, 2026 | Phase 2 Task 2 complete — VPC module with public/private subnets, single NAT, security groups |
+| May 31, 2026 | Phase 2 Task 3 complete — RDS module with PostgreSQL 16, gp3, backups, managed secret |
 
 ---
 

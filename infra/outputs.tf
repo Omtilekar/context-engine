@@ -37,3 +37,19 @@ output "rds_security_group_id" {
   description = "Security group ID for RDS PostgreSQL."
   value       = module.vpc.rds_security_group_id
 }
+
+output "rds_endpoint" {
+  description = "Connection endpoint for the ContextEngine PostgreSQL instance."
+  value       = module.rds.db_endpoint
+}
+
+output "rds_instance_id" {
+  description = "Identifier of the ContextEngine PostgreSQL instance."
+  value       = module.rds.db_instance_id
+}
+
+output "rds_master_secret_arn" {
+  description = "Secrets Manager ARN for the RDS-managed master credentials."
+  value       = module.rds.master_secret_arn
+  sensitive   = true
+}
