@@ -9,7 +9,7 @@
 
 **Overall:** Phase 2 infrastructure code complete · Phase 3 backend foundation in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 3 — Task 7: Implement structured SQL retriever with injection guard
+**Next task:** Phase 3 — Task 8: Add graph retriever (entity_relations traversal)
 
 ---
 
@@ -192,7 +192,7 @@
 - [x] Expand unit tests for route heuristics and chunking
 - [x] Implement BM25 keyword retriever against PostgreSQL
 - [x] Implement semantic pgvector retriever
-- [ ] Implement structured SQL retriever with injection guard
+- [x] Implement structured SQL retriever with injection guard
 - [ ] Add real retriever implementations one at a time
 
 ---
@@ -267,6 +267,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 3 route/chunking/schema unit tests expanded — 36 backend tests passing |
 | May 31, 2026 | Phase 3 BM25 keyword retriever complete — PostgreSQL full-text search, seed script, 42 backend tests passing |
 | May 31, 2026 | Phase 3 semantic pgvector retriever complete — deterministic local embeddings, pgvector search, 56 backend tests passing |
+| May 31, 2026 | Phase 3 SQL retriever complete — text-to-SQL via GPT-4o-mini, injection guard (12 blocked keywords), schema introspection, 5s timeout, product_catalog seed table |
 
 ---
 

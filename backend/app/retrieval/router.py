@@ -4,7 +4,7 @@ from app.embeddings.provider import get_embedding_provider
 from app.retrieval.graph import retrieve_graph
 from app.retrieval.keyword import retrieve_keyword
 from app.retrieval.semantic import retrieve_semantic
-from app.retrieval.structured import retrieve_structured
+from app.retrieval.sql import retrieve_sql
 from app.retrieval.wiki import retrieve_wiki
 from app.schemas.query import QueryRequest, QueryRoute, RouteDecision, SourceCitation
 
@@ -89,7 +89,7 @@ class RetrievalRouter:
         if route_decision.route == QueryRoute.BM25:
             return await retrieve_keyword(request.query, request.top_k)
         if route_decision.route == QueryRoute.SQL:
-            return await retrieve_structured(request.query, request.top_k)
+            return await retrieve_sql(request.query, request.top_k)
         if route_decision.route == QueryRoute.GRAPH:
             return await retrieve_graph(request.query, request.top_k)
 

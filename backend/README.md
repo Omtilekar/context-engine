@@ -98,6 +98,22 @@ The response includes the route decision and source citations shaped like:
 }
 ```
 
+Test the SQL route (text-to-SQL via GPT-4o-mini, requires `OPENAI_API_KEY` in `backend/.env`):
+
+```powershell
+$body = @{ query = 'how many products cost more than 100?'; top_k = 5 } | ConvertTo-Json
+Invoke-WebRequest -UseBasicParsing http://localhost:8000/query -Method POST -ContentType 'application/json' -Body $body
+```
+
+The SQL retriever introspects the live DB schema at query time, generates a SELECT statement,
+validates it through an injection guard (blocks DROP, DELETE, INSERT, UPDATE, TRUNCATE, ALTER,
+CREATE, EXEC, EXECUTE, GRANT, REVOKE), enforces a 50-row limit and a 5-second execution
+timeout, and returns each row as a `SourceCitation` with `retrieval_mode: "sql"`. The
+`product_catalog` demo table is seeded by `seed_local` and is the primary test target.
+
+If `OPENAI_API_KEY` is not set, the SQL retriever logs a warning and returns an empty result
+instead of raising. All guard, row-mapping, and endpoint tests run without a real API key.
+
 Stop the local stack:
 
 ```powershell

@@ -1,8 +1,8 @@
 import asyncio
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 
-from app.db.connection import close_database_connections, get_session_maker
+from app.db.connection import close_database_connections, get_engine, get_session_maker
 from app.db.models import Chunk, Document
 from app.embeddings.provider import get_embedding_provider
 
@@ -19,6 +19,57 @@ SAMPLE_CHUNKS = [
     (
         "The local development stack runs pgvector PostgreSQL and the FastAPI backend with "
         "Docker Compose, avoiding any dependency on AWS RDS."
+    ),
+]
+
+PRODUCT_CATALOG_DDL = """
+CREATE TABLE IF NOT EXISTS product_catalog (
+    id          SERIAL PRIMARY KEY,
+    name        VARCHAR(255) NOT NULL UNIQUE,
+    category    VARCHAR(100) NOT NULL,
+    price       NUMERIC(10, 2) NOT NULL,
+    stock_qty   INTEGER NOT NULL DEFAULT 0,
+    description TEXT
+)
+"""
+
+PRODUCT_ROWS = [
+    ("ContextEngine Pro", "Software", 299.00, 500, "Hybrid RAG pipeline with 6-route classifier."),
+    ("pgvector Starter Kit", "Database", 49.99, 1200, "PostgreSQL vector search with HNSW index."),
+    (
+        "BM25 Search Module",
+        "Software",
+        99.00,
+        800,
+        "Full-text BM25 keyword retrieval for PostgreSQL.",
+    ),
+    (
+        "Graph RAG Add-on",
+        "Software",
+        149.00,
+        350,
+        "Entity relationship traversal using PostgreSQL.",
+    ),
+    (
+        "Wiki Memory Pack",
+        "Software",
+        79.00,
+        620,
+        "LLM wiki memory layer with knowledge accumulation.",
+    ),
+    (
+        "Semantic Embedder",
+        "AI Tools",
+        59.00,
+        980,
+        "Local deterministic embeddings for dev and testing.",
+    ),
+    (
+        "Verification Shield",
+        "Software",
+        129.00,
+        420,
+        "Source grounding and conflict detection module.",
     ),
 ]
 
@@ -70,10 +121,49 @@ async def seed_sample_data() -> None:
         print(f"Seeded {len(SAMPLE_CHUNKS)} keyword chunks with embeddings for {SAMPLE_FILENAME}")
 
 
+async def seed_product_catalog() -> None:
+    """Create and populate the product_catalog structured demo table.
+
+    This table is used to test the SQL retriever with natural-language queries
+    like 'how many software products cost more than $100?'. It is created with
+    CREATE TABLE IF NOT EXISTS so the operation is idempotent.
+    """
+    engine = get_engine()
+    async with engine.begin() as conn:
+        await conn.execute(text(PRODUCT_CATALOG_DDL))
+
+    session_maker = get_session_maker()
+    async with session_maker() as session:
+        existing_count_result = await session.execute(text("SELECT COUNT(*) FROM product_catalog"))
+        existing_count = existing_count_result.scalar() or 0
+        if existing_count >= len(PRODUCT_ROWS):
+            print(f"product_catalog already has {existing_count} rows — skipping SQL seed")
+            return
+
+        for name, category, price, stock_qty, description in PRODUCT_ROWS:
+            await session.execute(
+                text(
+                    "INSERT INTO product_catalog (name, category, price, stock_qty, description) "
+                    "VALUES (:name, :category, :price, :stock_qty, :description) "
+                    "ON CONFLICT (name) DO NOTHING"
+                ),
+                {
+                    "name": name,
+                    "category": category,
+                    "price": price,
+                    "stock_qty": stock_qty,
+                    "description": description,
+                },
+            )
+        await session.commit()
+        print(f"Seeded {len(PRODUCT_ROWS)} rows into product_catalog for SQL retriever testing")
+
+
 async def main() -> None:
     """Run the local seed script and close database connections."""
     try:
         await seed_sample_data()
+        await seed_product_catalog()
     finally:
         await close_database_connections()
 
