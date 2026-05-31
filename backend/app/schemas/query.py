@@ -1,6 +1,7 @@
 from enum import StrEnum
+from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class QueryRoute(StrEnum):
@@ -51,9 +52,37 @@ class SourceCitation(BaseModel):
 class VerificationResult(BaseModel):
     """Grounding, conflict, and confidence result for an answer."""
 
-    grounded: bool
+    grounded: bool = False
+    is_grounded: bool = False
+    has_conflicts: bool = False
+    warnings: list[str] = Field(default_factory=list)
+    evidence_count: int = Field(default=0, ge=0)
+    retrieval_modes: list[str] = Field(default_factory=list)
+    conflict_notes: list[str] = Field(default_factory=list)
     conflicts: list[str] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)
+
+    @model_validator(mode="after")
+    def sync_legacy_fields(self) -> Self:
+        """Keep legacy and detailed verification fields consistent."""
+        grounded = self.grounded or self.is_grounded
+        conflicts = [*self.conflicts, *self.conflict_notes]
+        unique_conflicts = list(dict.fromkeys(conflicts))
+        self.grounded = grounded
+        self.is_grounded = grounded
+        self.conflicts = unique_conflicts
+        self.conflict_notes = unique_conflicts
+        self.has_conflicts = self.has_conflicts or bool(unique_conflicts)
+        return self
+
+
+class ConfidenceResult(BaseModel):
+    """Deterministic confidence score returned with each query response."""
+
+    score: float = Field(ge=0.0, le=1.0)
+    label: Literal["low", "medium", "high"]
+    reasons: list[str] = Field(default_factory=list)
+    explanation: str
 
 
 class QueryResponse(BaseModel):
@@ -63,6 +92,7 @@ class QueryResponse(BaseModel):
     route_decision: RouteDecision
     sources: list[SourceCitation] = Field(default_factory=list)
     verification: VerificationResult
+    confidence: ConfidenceResult
     tokens_used: int = 0
     cost_usd: float = 0.0
 

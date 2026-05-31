@@ -84,7 +84,21 @@ backend environment. If FlashRank is unavailable or fails, the API falls back to
 ordering and still returns a normal response. Normal tests never import FlashRank or download a
 model.
 
-The response includes the route decision and source citations shaped like:
+The verification layer runs before final answer generation. It checks whether evidence was
+retrieved, source count, retrieval-mode diversity, duplicate snippets, weak source scores,
+missing citation metadata, and simple lexical conflict signals such as increase/decrease,
+allowed/not allowed, true/false, and obvious numeric mismatches. This deterministic pass is
+intentionally conservative; it can flag likely conflicts, but it is not a substitute for the
+later GPT-4o-mini verification pass.
+
+Confidence scoring combines the router confidence, average source score, evidence count,
+retrieval-mode diversity, and verification penalties for no evidence, duplicate evidence,
+weak evidence, and conflicts. The API returns both the legacy verification confidence float
+and a structured top-level confidence object with `score`, `label`, `reasons`, and
+`explanation`.
+
+The response includes the route decision, verification, confidence, and source citations
+shaped like:
 
 ```json
 {
@@ -93,6 +107,27 @@ The response includes the route decision and source citations shaped like:
     "confidence": 0.66,
     "reasoning": "The query is best handled as a meaning-based semantic lookup.",
     "entities": []
+  },
+  "verification": {
+    "grounded": true,
+    "is_grounded": true,
+    "has_conflicts": false,
+    "warnings": ["single_source_evidence"],
+    "evidence_count": 1,
+    "retrieval_modes": ["semantic"],
+    "conflict_notes": [],
+    "conflicts": [],
+    "confidence": 0.62
+  },
+  "confidence": {
+    "score": 0.62,
+    "label": "medium",
+    "reasons": [
+      "route_confidence=0.66",
+      "average_source_score=0.82",
+      "evidence_count=1"
+    ],
+    "explanation": "route_confidence=0.66; average_source_score=0.82; evidence_count=1"
   },
   "sources": [
     {

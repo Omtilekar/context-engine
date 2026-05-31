@@ -69,13 +69,25 @@ async def test_query_endpoint_returns_placeholder_response_shape(
         "route_decision",
         "sources",
         "verification",
+        "confidence",
         "tokens_used",
         "cost_usd",
     }
     assert set(payload["route_decision"]) == {"route", "confidence", "reasoning", "entities"}
     assert payload["route_decision"]["route"] == "semantic"
     assert isinstance(payload["sources"], list)
-    assert set(payload["verification"]) == {"grounded", "conflicts", "confidence"}
+    assert {
+        "grounded",
+        "is_grounded",
+        "has_conflicts",
+        "warnings",
+        "evidence_count",
+        "retrieval_modes",
+        "conflict_notes",
+        "conflicts",
+        "confidence",
+    }.issubset(payload["verification"])
+    assert set(payload["confidence"]) == {"score", "label", "reasons", "explanation"}
 
 
 async def test_ingest_endpoint_returns_placeholder_response_shape() -> None:
