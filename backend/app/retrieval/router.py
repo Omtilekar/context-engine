@@ -21,8 +21,14 @@ class RetrievalRouter:
         graph_terms = (
             "who works with",
             "relationship",
+            "relationships",
             "connected to",
             "related to",
+            "linked to",
+            "association",
+            "dependency",
+            "dependencies",
+            "graph",
             "between",
         )
         keyword_terms = ("exact", "mentions", "keyword", "phrase", '"')

@@ -73,6 +73,44 @@ normalized title/snippet fallback, combines duplicate scores, and records proven
 `retrieval_modes`. SQL snippets are merged into the final context list but are not sent through
 FlashRank.
 
+Test the graph route:
+
+```powershell
+$body = @{ query = 'Which entities are linked to ContextEngine?'; top_k = 5 } | ConvertTo-Json
+Invoke-WebRequest -UseBasicParsing http://localhost:8000/query -Method POST -ContentType 'application/json' -Body $body
+```
+
+Graph retrieval uses the PostgreSQL `entity_relations` table, not a graph database. It supports
+1-hop relationship lookup and directed 2-hop traversal for questions like:
+
+- `How is ContextEngine related to PostgreSQL?`
+- `What is connected to pgvector?`
+- `Show relationships for FlashRank`
+- `Which entities are linked to AWS?`
+
+The local seed script inserts idempotent graph demo data:
+
+```text
+ContextEngine uses PostgreSQL
+ContextEngine uses pgvector
+ContextEngine uses FlashRank
+ContextEngine deployed_on AWS
+pgvector stored_in PostgreSQL
+FlashRank reranks RetrievalResults
+```
+
+Graph sources are returned as normal `SourceCitation` objects with `retrieval_mode: "graph"`
+and metadata such as:
+
+```json
+{
+  "source_entity": "ContextEngine",
+  "target_entity": "PostgreSQL",
+  "relationship_type": "uses",
+  "hop_count": 1
+}
+```
+
 FlashRank reranking is optional and disabled locally by default:
 
 ```powershell

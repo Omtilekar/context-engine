@@ -316,7 +316,7 @@ def test_rows_to_sources_truncates_long_sql_in_metadata() -> None:
     """Generated SQL longer than 120 chars is truncated in metadata."""
     long_sql = "SELECT " + ", ".join(f"col_{i}" for i in range(30)) + " FROM product_catalog"
     sources = _rows_to_sources([sql_row()], long_sql, "product_catalog")
-    assert sources[0].metadata["generated_sql"].endswith("...")
+    assert str(sources[0].metadata["generated_sql"]).endswith("...")
 
 
 def test_rows_to_sources_handles_none_values() -> None:

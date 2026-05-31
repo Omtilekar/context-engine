@@ -3,6 +3,8 @@ from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+MetadataValue = str | int | float | bool
+
 
 class QueryRoute(StrEnum):
     """Supported query routes for ContextEngine retrieval."""
@@ -46,7 +48,7 @@ class SourceCitation(BaseModel):
     document_id: str | None = None
     retrieval_mode: str | None = None
     retrieval_modes: list[str] = Field(default_factory=list)
-    metadata: dict[str, str] = Field(default_factory=dict)
+    metadata: dict[str, MetadataValue] = Field(default_factory=dict)
 
 
 class VerificationResult(BaseModel):

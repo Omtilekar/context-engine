@@ -73,6 +73,15 @@ PRODUCT_ROWS = [
     ),
 ]
 
+GRAPH_RELATIONS = [
+    ("ContextEngine", "uses", "PostgreSQL"),
+    ("ContextEngine", "uses", "pgvector"),
+    ("ContextEngine", "uses", "FlashRank"),
+    ("ContextEngine", "deployed_on", "AWS"),
+    ("pgvector", "stored_in", "PostgreSQL"),
+    ("FlashRank", "reranks", "RetrievalResults"),
+]
+
 
 async def seed_sample_data() -> None:
     """Insert idempotent local sample documents and chunks for keyword retrieval testing."""
@@ -159,11 +168,41 @@ async def seed_product_catalog() -> None:
         print(f"Seeded {len(PRODUCT_ROWS)} rows into product_catalog for SQL retriever testing")
 
 
+async def seed_graph_relations() -> None:
+    """Insert idempotent local entity_relations rows for graph retriever testing."""
+    session_maker = get_session_maker()
+    inserted = 0
+    async with session_maker() as session:
+        for entity_a, relation_type, entity_b in GRAPH_RELATIONS:
+            result = await session.execute(
+                text(
+                    "INSERT INTO entity_relations "
+                    "(entity_a, relation_type, entity_b, confidence) "
+                    "SELECT :entity_a, :relation_type, :entity_b, 1.0 "
+                    "WHERE NOT EXISTS ("
+                    "  SELECT 1 FROM entity_relations "
+                    "  WHERE entity_a = :entity_a "
+                    "    AND relation_type = :relation_type "
+                    "    AND entity_b = :entity_b"
+                    ")"
+                ),
+                {
+                    "entity_a": entity_a,
+                    "relation_type": relation_type,
+                    "entity_b": entity_b,
+                },
+            )
+            inserted += int(getattr(result, "rowcount", 0) or 0)
+        await session.commit()
+    print(f"Seeded {inserted} graph relations for entity_relations demo data")
+
+
 async def main() -> None:
     """Run the local seed script and close database connections."""
     try:
         await seed_sample_data()
         await seed_product_catalog()
+        await seed_graph_relations()
     finally:
         await close_database_connections()
 
