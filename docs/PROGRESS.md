@@ -7,9 +7,9 @@
 
 ## Current Status
 
-**Overall:** Phase 1 complete · Phase 2 starting
-**Last updated:** May 30, 2026
-**Next task:** Phase 2 — Task 1: Create infra/ Terraform root module structure
+**Overall:** Phase 1 complete · Phase 2 in progress
+**Last updated:** May 31, 2026
+**Next task:** Phase 2 — Task 2: Build VPC module
 
 ---
 
@@ -19,7 +19,7 @@
 |-------|--------|------------|-------------|
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
-| Phase 2 — Terraform Infrastructure | NOT STARTED | 0 | 47 |
+| Phase 2 — Terraform Infrastructure | IN PROGRESS | 5 | 47 |
 | Phase 3 — Backend RAG Engine | NOT STARTED | 0 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
@@ -106,11 +106,11 @@
 ## Phase 2 — Terraform Infrastructure (NEXT)
 
 ### Project Structure
-- [ ] Create infra/ root module (main.tf, variables.tf, outputs.tf, versions.tf)
-- [ ] Create infra/modules/ subfolders (vpc, ecs, rds, s3, cloudfront, cognito, cloudwatch)
-- [ ] Create infra/envs/prod/
-- [ ] Configure Terraform backend (S3 + DynamoDB state)
-- [ ] Pin provider versions (aws ~> 5.0)
+- [x] Create infra/ root module (main.tf, variables.tf, outputs.tf, versions.tf)
+- [x] Create infra/modules/ subfolders (vpc, ecs, rds, s3, cloudfront, cognito, cloudwatch)
+- [x] Create infra/envs/prod/
+- [x] Configure Terraform backend (S3 + DynamoDB state)
+- [x] Pin provider versions (aws ~> 5.0)
 
 ### VPC Module
 - [ ] VPC (CIDR 10.0.0.0/16)
@@ -211,6 +211,7 @@ Project path:        C:\Om\Codes\context_engine
 |-------|--------|
 | AWS account suspended (free plan ended) | Resolved — upgraded, $48.81 credits active |
 | InvalidClientTokenId on CLI | Resolved — created context-engine-admin access keys |
+| Terraform command unavailable in current shell PATH | Open — needed before fmt/validate/plan |
 
 ---
 
@@ -221,6 +222,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 29, 2026 | Full planning, stack decisions, 8-layer architecture design |
 | May 29, 2026 | Phase 1 complete — IAM, billing, tooling, TF state, GitHub |
 | May 30, 2026 | Updated all docs to v2 architecture (Graph RAG + Wiki + Verification + Memory) |
+| May 31, 2026 | Phase 2 Task 1 complete — Terraform root structure, backend config, provider pinning |
 
 ---
 
