@@ -9,7 +9,7 @@
 
 **Overall:** Phase 1 complete · Phase 2 in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 2 — Task 9: Run Terraform fmt/validate/plan
+**Next task:** Phase 2 — Task 10: Review plan and approve/decline terraform apply
 
 ---
 
@@ -19,7 +19,7 @@
 |-------|--------|------------|-------------|
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
-| Phase 2 — Terraform Infrastructure | IN PROGRESS | 38 | 47 |
+| Phase 2 — Terraform Infrastructure | IN PROGRESS | 41 | 47 |
 | Phase 3 — Backend RAG Engine | NOT STARTED | 0 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
@@ -157,6 +157,12 @@
 - [x] Makefile: status (check running state)
 - [x] Health check poll in demo-on
 
+### Terraform Review
+- [x] terraform fmt
+- [x] terraform validate
+- [x] terraform plan (60 to add, 0 to change, 0 to destroy)
+- [ ] terraform apply (requires explicit approval)
+
 ---
 
 ## Phase 3 — Backend RAG Engine (NOT STARTED)
@@ -211,7 +217,9 @@ Project path:        C:\Om\Codes\context_engine
 |-------|--------|
 | AWS account suspended (free plan ended) | Resolved — upgraded, $48.81 credits active |
 | InvalidClientTokenId on CLI | Resolved — created context-engine-admin access keys |
-| Terraform command unavailable in current shell PATH | Open — needed before fmt/validate/plan |
+| Terraform command unavailable in current shell PATH | Resolved — use `C:\tools\terraform\terraform.exe` |
+| Terraform remote init/plan blocked by `context-engine-admin` InvalidClientTokenId | Resolved — added backend profile and confirmed STS identity |
+| Terraform S3 backend `dynamodb_table` deprecation warning | Open — kept DynamoDB lock table because project state locking is already bootstrapped |
 
 ---
 
@@ -230,6 +238,8 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 2 Task 6 complete — CloudFront OAC distribution with SPA routing |
 | May 31, 2026 | Phase 2 Task 7 complete — DynamoDB, SQS, Cognito, Secrets Manager, CloudWatch log group |
 | May 31, 2026 | Phase 2 Task 8 complete — Makefile demo-on, demo-off, status, and health polling |
+| May 31, 2026 | Terraform fmt and offline validate passed; remote init/plan blocked by invalid AWS profile token |
+| May 31, 2026 | Terraform remote init, validate, and plan passed — 60 to add, 0 to change, 0 to destroy |
 
 ---
 

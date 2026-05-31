@@ -17,7 +17,7 @@ resource "aws_ecr_repository" "backend" {
 }
 
 resource "aws_ecr_lifecycle_policy" "backend" {
-  policy     = jsonencode({
+  policy = jsonencode({
     rules = [
       {
         action = {

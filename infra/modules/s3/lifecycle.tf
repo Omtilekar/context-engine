@@ -8,8 +8,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "main" {
       days_after_initiation = 7
     }
 
+    filter {}
+
     id     = "abort-incomplete-multipart-uploads"
     status = "Enabled"
   }
 }
-

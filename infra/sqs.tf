@@ -9,10 +9,10 @@ resource "aws_sqs_queue" "ingest_dlq" {
 }
 
 resource "aws_sqs_queue" "ingest" {
-  message_retention_seconds = 345600
-  name                      = "${var.project_name}-${var.environment}-ingest-queue"
-  receive_wait_time_seconds = 10
-  sqs_managed_sse_enabled   = true
+  message_retention_seconds  = 345600
+  name                       = "${var.project_name}-${var.environment}-ingest-queue"
+  receive_wait_time_seconds  = 10
+  sqs_managed_sse_enabled    = true
   visibility_timeout_seconds = 300
 
   redrive_policy = jsonencode({

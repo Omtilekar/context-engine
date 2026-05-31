@@ -11,9 +11,9 @@ terraform {
   backend "s3" {
     bucket         = "context-engine-tf-state-256716302630"
     key            = "prod/terraform.tfstate"
+    profile        = "context-engine-admin"
     region         = "us-east-1"
     dynamodb_table = "context-engine-tf-lock"
     encrypt        = true
   }
 }
-

@@ -17,7 +17,6 @@ dist/
 *.tfstate.backup
 *.tfvars
 !*.tfvars.example
-.terraform.lock.hcl
 
 # Node
 node_modules/
