@@ -9,7 +9,7 @@
 
 **Overall:** Phase 1 complete · Phase 2 in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 2 — Task 2: Build VPC module
+**Next task:** Phase 2 — Task 3: Build RDS module
 
 ---
 
@@ -19,7 +19,7 @@
 |-------|--------|------------|-------------|
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
-| Phase 2 — Terraform Infrastructure | IN PROGRESS | 5 | 47 |
+| Phase 2 — Terraform Infrastructure | IN PROGRESS | 14 | 47 |
 | Phase 3 — Backend RAG Engine | NOT STARTED | 0 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
@@ -113,15 +113,15 @@
 - [x] Pin provider versions (aws ~> 5.0)
 
 ### VPC Module
-- [ ] VPC (CIDR 10.0.0.0/16)
-- [ ] 2 public subnets (ALB + NAT)
-- [ ] 2 private subnets (ECS + RDS)
-- [ ] Internet Gateway
-- [ ] NAT Gateway (1x — single AZ saves cost)
-- [ ] Public + private route tables
-- [ ] Security group: ALB (80/443 inbound)
-- [ ] Security group: ECS (8000 from ALB only)
-- [ ] Security group: RDS (5432 from ECS only)
+- [x] VPC (CIDR 10.0.0.0/16)
+- [x] 2 public subnets (ALB + NAT)
+- [x] 2 private subnets (ECS + RDS)
+- [x] Internet Gateway
+- [x] NAT Gateway (1x — single AZ saves cost)
+- [x] Public + private route tables
+- [x] Security group: ALB (80/443 inbound)
+- [x] Security group: ECS (8000 from ALB only)
+- [x] Security group: RDS (5432 from ECS only)
 
 ### RDS Module
 - [ ] RDS subnet group (both private subnets)
@@ -223,6 +223,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 29, 2026 | Phase 1 complete — IAM, billing, tooling, TF state, GitHub |
 | May 30, 2026 | Updated all docs to v2 architecture (Graph RAG + Wiki + Verification + Memory) |
 | May 31, 2026 | Phase 2 Task 1 complete — Terraform root structure, backend config, provider pinning |
+| May 31, 2026 | Phase 2 Task 2 complete — VPC module with public/private subnets, single NAT, security groups |
 
 ---
 

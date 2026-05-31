@@ -2,6 +2,11 @@ variable "project_name" {
   description = "Project name used for tagging AWS resources."
   type        = string
   default     = "context-engine"
+
+  validation {
+    condition     = var.project_name == "context-engine"
+    error_message = "Project name must remain context-engine to preserve the required AWS name prefix."
+  }
 }
 
 variable "environment" {
@@ -38,3 +43,41 @@ variable "account_id" {
   default     = "256716302630"
 }
 
+variable "vpc_cidr" {
+  description = "CIDR block for the ContextEngine VPC."
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "availability_zones" {
+  description = "Availability zones used for public and private subnet placement."
+  type        = list(string)
+  default     = ["us-east-1a", "us-east-1b"]
+
+  validation {
+    condition     = length(var.availability_zones) >= 2
+    error_message = "At least two availability zones are required."
+  }
+}
+
+variable "public_subnet_cidrs" {
+  description = "CIDR blocks for public subnets that host the ALB and NAT gateway."
+  type        = list(string)
+  default     = ["10.0.0.0/24", "10.0.1.0/24"]
+
+  validation {
+    condition     = length(var.public_subnet_cidrs) == 2
+    error_message = "Exactly two public subnet CIDR blocks are required."
+  }
+}
+
+variable "private_subnet_cidrs" {
+  description = "CIDR blocks for private subnets that host ECS tasks and RDS."
+  type        = list(string)
+  default     = ["10.0.10.0/24", "10.0.11.0/24"]
+
+  validation {
+    condition     = length(var.private_subnet_cidrs) == 2
+    error_message = "Exactly two private subnet CIDR blocks are required."
+  }
+}
