@@ -33,9 +33,7 @@ make local-migrate
 Seed local keyword-search sample data:
 
 ```powershell
-cd backend
-.\.venv\Scripts\python.exe -m app.scripts.seed_local
-cd ..
+docker compose exec backend python -m app.scripts.seed_local
 ```
 
 Test the health endpoint:
