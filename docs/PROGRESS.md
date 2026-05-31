@@ -7,9 +7,9 @@
 
 ## Current Status
 
-**Overall:** Phase 1 complete · Phase 2 in progress
+**Overall:** Phase 2 infrastructure code complete · Phase 3 backend foundation in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 2 — Task 10: Review plan and approve/decline terraform apply
+**Next task:** Phase 3 — Task 2: Add Alembic setup and initial database migration
 
 ---
 
@@ -19,8 +19,8 @@
 |-------|--------|------------|-------------|
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
-| Phase 2 — Terraform Infrastructure | IN PROGRESS | 41 | 47 |
-| Phase 3 — Backend RAG Engine | NOT STARTED | 0 | 63 |
+| Phase 2 — Terraform Infrastructure | APPLY DEFERRED | 41 | 47 |
+| Phase 3 — Backend RAG Engine | IN PROGRESS | 11 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
 | Phase 6 — Testing & Quality | NOT STARTED | 0 | 22 |
@@ -103,7 +103,7 @@
 
 ---
 
-## Phase 2 — Terraform Infrastructure (NEXT)
+## Phase 2 — Terraform Infrastructure (APPLY DEFERRED)
 
 ### Project Structure
 - [x] Create infra/ root module (main.tf, variables.tf, outputs.tf, versions.tf)
@@ -165,15 +165,26 @@
 
 ---
 
-## Phase 3 — Backend RAG Engine (NOT STARTED)
+## Phase 3 — Backend RAG Engine (IN PROGRESS)
 
-Will be detailed when Phase 2 is complete. Key additions vs original plan:
-- `retrievers/graph.py` — Graph RAG via entity_relations table
-- `retrievers/wiki.py` — Wiki page retrieval
-- `ingestion/entity_extractor.py` — GPT-4o-mini entity extraction
-- `ingestion/wiki_builder.py` — LLM Wiki page builder (Karpathy method)
-- `verification/` module — grounding + conflict detection + confidence
-- `memory/updater.py` — continuous learning layer
+### Backend Foundation
+- [x] Create backend app structure
+- [x] Add FastAPI app
+- [x] Add `/health`, `/query`, `/ingest`, and `/status` endpoints
+- [x] Add Pydantic settings/config module
+- [x] Add async PostgreSQL connection module
+- [x] Add SQLAlchemy models with pgvector placeholder support
+- [x] Add retrieval router skeleton for wiki, semantic, BM25, SQL, graph, hybrid
+- [x] Add ingestion pipeline and chunking skeleton
+- [x] Add verification and confidence skeleton
+- [x] Add backend Dockerfile and local run instructions
+- [x] Add minimal tests for health and query placeholders
+
+### Next Backend Tasks
+- [ ] Alembic setup + initial migration for extensions, tables, and indexes
+- [ ] Docker Compose local dev setup with pgvector PostgreSQL
+- [ ] Expand unit tests for route heuristics and chunking
+- [ ] Add real retriever implementations one at a time
 
 ---
 
@@ -220,6 +231,7 @@ Project path:        C:\Om\Codes\context_engine
 | Terraform command unavailable in current shell PATH | Resolved — use `C:\tools\terraform\terraform.exe` |
 | Terraform remote init/plan blocked by `context-engine-admin` InvalidClientTokenId | Resolved — added backend profile and confirmed STS identity |
 | Terraform S3 backend `dynamodb_table` deprecation warning | Open — kept DynamoDB lock table because project state locking is already bootstrapped |
+| Poetry command unavailable in current shell PATH | Open — used local `.venv` for Phase 3 checks; install/repair Poetry before lockfile workflow |
 
 ---
 
@@ -240,6 +252,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 2 Task 8 complete — Makefile demo-on, demo-off, status, and health polling |
 | May 31, 2026 | Terraform fmt and offline validate passed; remote init/plan blocked by invalid AWS profile token |
 | May 31, 2026 | Terraform remote init, validate, and plan passed — 60 to add, 0 to change, 0 to destroy |
+| May 31, 2026 | Phase 3 backend foundation complete — FastAPI app, config, DB, retrieval, ingestion, verification skeletons |
 
 ---
 
