@@ -73,3 +73,18 @@ output "ecs_service_name" {
   description = "Name of the ContextEngine ECS service."
   value       = module.ecs.service_name
 }
+
+output "documents_bucket_name" {
+  description = "Name of the private S3 bucket for source documents."
+  value       = module.s3.documents_bucket_name
+}
+
+output "frontend_bucket_name" {
+  description = "Name of the private S3 bucket for frontend build artifacts."
+  value       = module.s3.frontend_bucket_name
+}
+
+output "wiki_bucket_name" {
+  description = "Name of the private S3 bucket for wiki markdown backups."
+  value       = module.s3.wiki_bucket_name
+}

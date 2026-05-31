@@ -55,3 +55,12 @@ module "ecs" {
   rds_master_secret_arn = module.rds.master_secret_arn
   vpc_id                = module.vpc.vpc_id
 }
+
+module "s3" {
+  source = "./modules/s3"
+
+  account_id   = var.account_id
+  common_tags  = local.common_tags
+  environment  = var.environment
+  project_name = var.project_name
+}
