@@ -9,7 +9,7 @@
 
 **Overall:** Phase 1 complete · Phase 2 in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 2 — Task 6: Build CloudFront module
+**Next task:** Phase 2 — Task 7: Build supporting services
 
 ---
 
@@ -19,7 +19,7 @@
 |-------|--------|------------|-------------|
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
-| Phase 2 — Terraform Infrastructure | IN PROGRESS | 27 | 47 |
+| Phase 2 — Terraform Infrastructure | IN PROGRESS | 28 | 47 |
 | Phase 3 — Backend RAG Engine | NOT STARTED | 0 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
@@ -141,7 +141,7 @@
 - [x] S3 frontend bucket (private, OAC for CloudFront)
 - [x] S3 documents bucket (private)
 - [x] S3 wiki bucket (private)
-- [ ] CloudFront distribution (OAC + SPA routing)
+- [x] CloudFront distribution (OAC + SPA routing)
 
 ### Supporting Services
 - [ ] DynamoDB: `context-engine-prod-sessions` (PAY_PER_REQUEST)
@@ -227,6 +227,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 2 Task 3 complete — RDS module with PostgreSQL 16, gp3, backups, managed secret |
 | May 31, 2026 | Phase 2 Task 4 complete — ECS, ECR, ALB, target group, listener, idle service wiring |
 | May 31, 2026 | Phase 2 Task 5 complete — private encrypted S3 buckets for documents, frontend, and wiki |
+| May 31, 2026 | Phase 2 Task 6 complete — CloudFront OAC distribution with SPA routing |
 
 ---
 

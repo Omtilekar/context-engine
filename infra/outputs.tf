@@ -88,3 +88,13 @@ output "wiki_bucket_name" {
   description = "Name of the private S3 bucket for wiki markdown backups."
   value       = module.s3.wiki_bucket_name
 }
+
+output "cloudfront_distribution_domain_name" {
+  description = "CloudFront domain name serving the frontend SPA."
+  value       = module.cloudfront.distribution_domain_name
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID for frontend deployments and invalidations."
+  value       = module.cloudfront.distribution_id
+}

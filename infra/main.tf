@@ -64,3 +64,14 @@ module "s3" {
   environment  = var.environment
   project_name = var.project_name
 }
+
+module "cloudfront" {
+  source = "./modules/cloudfront"
+
+  common_tags                          = local.common_tags
+  environment                          = var.environment
+  frontend_bucket_arn                  = module.s3.frontend_bucket_arn
+  frontend_bucket_name                 = module.s3.frontend_bucket_name
+  frontend_bucket_regional_domain_name = module.s3.frontend_bucket_regional_domain_name
+  project_name                         = var.project_name
+}
