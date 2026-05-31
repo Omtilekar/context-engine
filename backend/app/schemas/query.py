@@ -85,14 +85,44 @@ class ConfidenceResult(BaseModel):
     explanation: str
 
 
+class Citation(BaseModel):
+    """Citation metadata exposed with generated answers."""
+
+    title: str
+    retrieval_mode: str
+    score: float = Field(ge=0.0, le=1.0)
+
+
+class GenerationMetadata(BaseModel):
+    """Metadata describing answer generation behavior."""
+
+    provider: str
+    model: str
+    tokens_used: int = Field(default=0, ge=0)
+    cost_usd: float = Field(default=0.0, ge=0.0)
+    citation_count: int = Field(default=0, ge=0)
+    source_count: int = Field(default=0, ge=0)
+    fallback_reason: str | None = None
+
+
+class GenerationResult(BaseModel):
+    """Answer synthesis output from the generation layer."""
+
+    answer: str
+    citations: list[Citation] = Field(default_factory=list)
+    metadata: GenerationMetadata
+
+
 class QueryResponse(BaseModel):
     """Structured response returned by the placeholder query pipeline."""
 
     answer: str
     route_decision: RouteDecision
     sources: list[SourceCitation] = Field(default_factory=list)
+    citations: list[Citation] = Field(default_factory=list)
     verification: VerificationResult
     confidence: ConfidenceResult
+    generation_metadata: GenerationMetadata
     tokens_used: int = 0
     cost_usd: float = 0.0
 

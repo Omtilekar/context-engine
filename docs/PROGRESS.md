@@ -9,7 +9,7 @@
 
 **Overall:** Phase 2 infrastructure code complete · Phase 3 backend foundation in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 3 — Task 10: GPT-4o answer generation with citations
+**Next task:** Phase 3 — Task 11: Implement graph retriever against entity_relations
 
 ---
 
@@ -20,7 +20,7 @@
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
 | Phase 2 — Terraform Infrastructure | APPLY DEFERRED | 41 | 47 |
-| Phase 3 — Backend RAG Engine | IN PROGRESS | 23 | 63 |
+| Phase 3 — Backend RAG Engine | IN PROGRESS | 24 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
 | Phase 6 — Testing & Quality | NOT STARTED | 0 | 22 |
@@ -196,6 +196,7 @@
 - [x] Harden SQL retriever guard with comments, semicolon, and table allowlist checks
 - [x] Hybrid retrieval merger and optional FlashRank reranking layer
 - [x] Deterministic verification and confidence layer
+- [x] GPT-4o answer generation with citations and disabled local fallback
 - [ ] Add real retriever implementations one at a time
 
 ---
@@ -274,6 +275,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 3 SQL retriever hardening complete — comment blocking, semicolon chaining rejection, table allowlist, OpenAI-off guard, 119 backend tests passing |
 | May 31, 2026 | Phase 3 hybrid merge/rerank complete — source dedupe, score fusion, provenance, disabled-by-default FlashRank, 132 backend tests passing |
 | May 31, 2026 | Phase 3 verification/confidence complete — deterministic grounding, diversity, duplicate, conflict, and confidence checks, 142 backend tests passing |
+| May 31, 2026 | Phase 3 answer generation complete — GPT-4o provider path, disabled local fallback, grounded prompts, citations, 149 backend tests passing |
 
 ---
 

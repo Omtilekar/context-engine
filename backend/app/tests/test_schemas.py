@@ -68,8 +68,10 @@ async def test_query_endpoint_returns_placeholder_response_shape(
         "answer",
         "route_decision",
         "sources",
+        "citations",
         "verification",
         "confidence",
+        "generation_metadata",
         "tokens_used",
         "cost_usd",
     }
@@ -88,6 +90,16 @@ async def test_query_endpoint_returns_placeholder_response_shape(
         "confidence",
     }.issubset(payload["verification"])
     assert set(payload["confidence"]) == {"score", "label", "reasons", "explanation"}
+    assert isinstance(payload["citations"], list)
+    assert set(payload["generation_metadata"]) == {
+        "provider",
+        "model",
+        "tokens_used",
+        "cost_usd",
+        "citation_count",
+        "source_count",
+        "fallback_reason",
+    }
 
 
 async def test_ingest_endpoint_returns_placeholder_response_shape() -> None:

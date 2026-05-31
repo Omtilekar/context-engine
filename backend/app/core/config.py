@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     embedding_dimension: int = Field(default=1536, alias="EMBEDDING_DIMENSION")
     sql_allowed_tables: str = Field(default="product_catalog", alias="SQL_ALLOWED_TABLES")
     reranker_mode: str = Field(default="disabled", alias="RERANKER_MODE")
+    llm_provider: str = Field(default="disabled", alias="LLM_PROVIDER")
+    openai_model: str = Field(default="gpt-4o", alias="OPENAI_MODEL")
 
     model_config = SettingsConfigDict(
         env_file=".env",

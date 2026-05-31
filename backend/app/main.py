@@ -6,10 +6,11 @@ from fastapi import FastAPI
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 from app.db.connection import close_database_connections
+from app.generation.generator import generate_answer
 from app.ingestion.pipeline import IngestionPipeline
 from app.retrieval.router import RetrievalRouter
 from app.schemas.document import DocumentIngestRequest, IngestResponse, StatusResponse
-from app.schemas.query import ConfidenceResult, QueryRequest, QueryResponse, VerificationResult
+from app.schemas.query import QueryRequest, QueryResponse
 from app.verification.confidence import score_confidence
 from app.verification.verifier import verify_response
 
@@ -63,26 +64,29 @@ async def query(request: QueryRequest) -> QueryResponse:
     router = RetrievalRouter()
     route_decision = await router.route(request)
     sources = await router.retrieve(request, route_decision)
-    base_answer = (
-        "ContextEngine backend foundation is online. Full retrieval and LLM generation "
-        "will be implemented in the next Phase 3 tasks."
-    )
     verification = verify_response(
         query=request.query,
-        answer=base_answer,
+        answer="",
         route_confidence=route_decision.confidence,
         sources=sources,
     )
     confidence = score_confidence(sources, route_decision.confidence, verification)
-    answer = build_placeholder_answer(base_answer, verification, confidence)
-    return QueryResponse(
-        answer=answer,
-        route_decision=route_decision,
+    generation = await generate_answer(
+        query=request.query,
         sources=sources,
         verification=verification,
         confidence=confidence,
-        tokens_used=0,
-        cost_usd=0.0,
+    )
+    return QueryResponse(
+        answer=generation.answer,
+        route_decision=route_decision,
+        sources=sources,
+        citations=generation.citations,
+        verification=verification,
+        confidence=confidence,
+        generation_metadata=generation.metadata,
+        tokens_used=generation.metadata.tokens_used,
+        cost_usd=generation.metadata.cost_usd,
     )
 
 
@@ -91,27 +95,3 @@ async def ingest(request: DocumentIngestRequest) -> IngestResponse:
     """Accept an ingestion request and return a queued placeholder job."""
     pipeline = IngestionPipeline()
     return await pipeline.ingest(request)
-
-
-def build_placeholder_answer(
-    base_answer: str,
-    verification: VerificationResult,
-    confidence: ConfidenceResult,
-) -> str:
-    """Return a deterministic placeholder answer that reflects evidence quality."""
-    if not verification.is_grounded:
-        return (
-            f"{base_answer} No supporting evidence was retrieved yet, so this response "
-            "should be treated as low confidence."
-        )
-    if verification.has_conflicts:
-        return (
-            f"{base_answer} Retrieved evidence is available, but deterministic checks found "
-            "possible conflicts that should be resolved before final answer generation."
-        )
-    if confidence.label == "low":
-        return (
-            f"{base_answer} Retrieved evidence is weak, so the answer generator should "
-            "request stronger citations before making a firm claim."
-        )
-    return f"{base_answer} Retrieved evidence passed deterministic verification checks."

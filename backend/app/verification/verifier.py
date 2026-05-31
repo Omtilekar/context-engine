@@ -97,8 +97,6 @@ def verification_warnings(
     warnings: list[str] = []
     if not query.strip():
         warnings.append("empty_query")
-    if not answer.strip():
-        warnings.append("empty_answer")
     if not sources:
         warnings.append("no_sources")
     if len(sources) == 1:

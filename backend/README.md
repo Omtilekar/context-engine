@@ -97,8 +97,34 @@ weak evidence, and conflicts. The API returns both the legacy verification confi
 and a structured top-level confidence object with `score`, `label`, `reasons`, and
 `explanation`.
 
-The response includes the route decision, verification, confidence, and source citations
-shaped like:
+The generation layer runs after verification and confidence scoring. Local development uses
+the deterministic disabled provider by default:
+
+```powershell
+LLM_PROVIDER=disabled
+OPENAI_MODEL=gpt-4o
+```
+
+When disabled, `/query` still returns a grounded answer such as "Based on 3 retrieved
+sources..." using only retrieved snippets. To enable GPT-4o answer synthesis, set
+`LLM_PROVIDER=openai`, keep `OPENAI_MODEL=gpt-4o`, and provide `OPENAI_API_KEY` through
+`backend/.env` locally or AWS Secrets Manager in production. If the key is missing or OpenAI
+generation fails, the backend falls back to the deterministic answer and still returns a
+normal response.
+
+Generated answers cite retrieved sources using inline anchors like `[1]`. The public
+`citations` field only includes retrieved sources referenced by the answer:
+
+```json
+{
+  "title": "local-keyword-demo.txt",
+  "retrieval_mode": "semantic",
+  "score": 0.82
+}
+```
+
+The response includes the route decision, verification, confidence, citations, generation
+metadata, and source citations shaped like:
 
 ```json
 {
@@ -128,6 +154,22 @@ shaped like:
       "evidence_count=1"
     ],
     "explanation": "route_confidence=0.66; average_source_score=0.82; evidence_count=1"
+  },
+  "citations": [
+    {
+      "title": "local-keyword-demo.txt",
+      "retrieval_mode": "semantic",
+      "score": 0.82
+    }
+  ],
+  "generation_metadata": {
+    "provider": "disabled",
+    "model": "gpt-4o",
+    "tokens_used": 0,
+    "cost_usd": 0.0,
+    "citation_count": 1,
+    "source_count": 1,
+    "fallback_reason": "llm_provider_disabled"
   },
   "sources": [
     {
@@ -239,6 +281,6 @@ cd backend
 - `POST /query`
 - `POST /ingest`
 
-All LLM, retrieval, ingestion, and verification behavior is intentionally skeletal in this
-foundation slice. The interfaces are in place so the full RAG pipeline can be filled in
-without changing the API shape.
+Retrieval, verification, confidence scoring, and disabled-mode answer generation now run
+locally without OpenAI or AWS. GPT-4o answer synthesis is optional behind `LLM_PROVIDER=openai`;
+streaming SSE and production auth move into later API-layer tasks.
