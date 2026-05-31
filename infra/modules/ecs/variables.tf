@@ -70,8 +70,63 @@ variable "db_name" {
   type        = string
 }
 
+variable "documents_bucket_name" {
+  description = "Name of the private S3 bucket for source documents."
+  type        = string
+}
+
+variable "documents_bucket_arn" {
+  description = "ARN of the private S3 bucket for source documents."
+  type        = string
+}
+
+variable "wiki_bucket_name" {
+  description = "Name of the private S3 bucket for wiki markdown backups."
+  type        = string
+}
+
+variable "wiki_bucket_arn" {
+  description = "ARN of the private S3 bucket for wiki markdown backups."
+  type        = string
+}
+
+variable "sqs_ingest_queue_url" {
+  description = "URL of the ingestion SQS queue."
+  type        = string
+}
+
+variable "sqs_ingest_queue_arn" {
+  description = "ARN of the ingestion SQS queue."
+  type        = string
+}
+
+variable "dynamodb_table_name" {
+  description = "Name of the DynamoDB table for sessions and query logs."
+  type        = string
+}
+
+variable "dynamodb_table_arn" {
+  description = "ARN of the DynamoDB table for sessions and query logs."
+  type        = string
+}
+
+variable "cognito_user_pool_id" {
+  description = "ID of the Cognito user pool."
+  type        = string
+}
+
+variable "cognito_client_id" {
+  description = "ID of the Cognito SPA app client."
+  type        = string
+}
+
 variable "rds_master_secret_arn" {
   description = "Secrets Manager ARN for the RDS-managed master credentials."
+  type        = string
+}
+
+variable "openai_secret_arn" {
+  description = "Secrets Manager ARN containing OPENAI_API_KEY."
   type        = string
 }
 
@@ -86,4 +141,3 @@ variable "ecs_task_role_name" {
   type        = string
   default     = "context-engine-ecs-task-role"
 }
-

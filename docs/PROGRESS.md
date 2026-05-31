@@ -9,7 +9,7 @@
 
 **Overall:** Phase 1 complete · Phase 2 in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 2 — Task 7: Build supporting services
+**Next task:** Phase 2 — Task 8: Add start/stop Makefile automation
 
 ---
 
@@ -19,7 +19,7 @@
 |-------|--------|------------|-------------|
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
-| Phase 2 — Terraform Infrastructure | IN PROGRESS | 28 | 47 |
+| Phase 2 — Terraform Infrastructure | IN PROGRESS | 34 | 47 |
 | Phase 3 — Backend RAG Engine | NOT STARTED | 0 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
@@ -144,12 +144,12 @@
 - [x] CloudFront distribution (OAC + SPA routing)
 
 ### Supporting Services
-- [ ] DynamoDB: `context-engine-prod-sessions` (PAY_PER_REQUEST)
-- [ ] SQS queue: `context-engine-prod-ingest-queue`
-- [ ] SQS DLQ: `context-engine-prod-ingest-dlq`
-- [ ] Cognito user pool + app client
-- [ ] Secrets Manager: OPENAI_API_KEY, DB_PASSWORD
-- [ ] CloudWatch log group (7 day retention)
+- [x] DynamoDB: `context-engine-prod-sessions` (PAY_PER_REQUEST)
+- [x] SQS queue: `context-engine-prod-ingest-queue`
+- [x] SQS DLQ: `context-engine-prod-ingest-dlq`
+- [x] Cognito user pool + app client
+- [x] Secrets Manager: OPENAI_API_KEY, DB_PASSWORD (RDS-managed)
+- [x] CloudWatch log group (7 day retention)
 
 ### Start/Stop Automation
 - [ ] Makefile: demo-on (start ECS + RDS)
@@ -228,6 +228,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 2 Task 4 complete — ECS, ECR, ALB, target group, listener, idle service wiring |
 | May 31, 2026 | Phase 2 Task 5 complete — private encrypted S3 buckets for documents, frontend, and wiki |
 | May 31, 2026 | Phase 2 Task 6 complete — CloudFront OAC distribution with SPA routing |
+| May 31, 2026 | Phase 2 Task 7 complete — DynamoDB, SQS, Cognito, Secrets Manager, CloudWatch log group |
 
 ---
 
