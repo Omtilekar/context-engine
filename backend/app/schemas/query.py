@@ -44,6 +44,7 @@ class SourceCitation(BaseModel):
     chunk_id: str | None = None
     document_id: str | None = None
     retrieval_mode: str | None = None
+    retrieval_modes: list[str] = Field(default_factory=list)
     metadata: dict[str, str] = Field(default_factory=dict)
 
 

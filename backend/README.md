@@ -67,6 +67,23 @@ $body = @{ query = 'Compare exact keyword retrieval across semantic meaning'; to
 Invoke-WebRequest -UseBasicParsing http://localhost:8000/query -Method POST -ContentType 'application/json' -Body $body
 ```
 
+Hybrid retrieval runs semantic pgvector and BM25 keyword retrieval in parallel, optionally adds
+SQL results when the query has structured/numeric signals, deduplicates by `chunk_id` or
+normalized title/snippet fallback, combines duplicate scores, and records provenance in
+`retrieval_modes`. SQL snippets are merged into the final context list but are not sent through
+FlashRank.
+
+FlashRank reranking is optional and disabled locally by default:
+
+```powershell
+RERANKER_MODE=disabled
+```
+
+Set `RERANKER_MODE=flashrank` only after installing the optional `flashrank` package in the
+backend environment. If FlashRank is unavailable or fails, the API falls back to merged-score
+ordering and still returns a normal response. Normal tests never import FlashRank or download a
+model.
+
 The response includes the route decision and source citations shaped like:
 
 ```json
@@ -87,9 +104,11 @@ The response includes the route decision and source citations shaped like:
       "chunk_id": "<chunk-uuid>",
       "document_id": "<document-uuid>",
       "retrieval_mode": "semantic",
+      "retrieval_modes": ["semantic", "keyword"],
       "metadata": {
         "distance": "0.180000",
         "similarity_score": "0.820000",
+        "retrieval_modes": "semantic,keyword",
         "chunk_index": "2",
         "document_source_type": "text"
       }

@@ -3,6 +3,8 @@ import asyncio
 from app.embeddings.provider import get_embedding_provider
 from app.retrieval.graph import retrieve_graph
 from app.retrieval.keyword import retrieve_keyword
+from app.retrieval.merger import merge_sources
+from app.retrieval.reranker import rerank_sources
 from app.retrieval.semantic import retrieve_semantic
 from app.retrieval.sql import retrieve_sql
 from app.retrieval.wiki import retrieve_wiki
@@ -85,19 +87,64 @@ class RetrievalRouter:
             return await retrieve_wiki(request.query, request.top_k)
         if route_decision.route == QueryRoute.SEMANTIC:
             query_embedding = await get_embedding_provider().embed_query(request.query)
-            return await retrieve_semantic(request.query, request.top_k, query_embedding)
+            semantic_sources = await retrieve_semantic(
+                request.query, request.top_k, query_embedding
+            )
+            return await self._merge_and_rerank(request, [semantic_sources])
         if route_decision.route == QueryRoute.BM25:
-            return await retrieve_keyword(request.query, request.top_k)
+            keyword_sources = await retrieve_keyword(request.query, request.top_k)
+            return await self._merge_and_rerank(request, [keyword_sources])
         if route_decision.route == QueryRoute.SQL:
             return await retrieve_sql(request.query, request.top_k)
         if route_decision.route == QueryRoute.GRAPH:
             return await retrieve_graph(request.query, request.top_k)
 
         query_embedding = await get_embedding_provider().embed_query(request.query)
-        results = await asyncio.gather(
-            retrieve_wiki(request.query, request.top_k),
+        retriever_calls = [
             retrieve_semantic(request.query, request.top_k, query_embedding),
             retrieve_keyword(request.query, request.top_k),
-            retrieve_graph(request.query, request.top_k),
+        ]
+        if should_include_sql_in_hybrid(request.query):
+            retriever_calls.append(retrieve_sql(request.query, request.top_k))
+
+        results = await asyncio.gather(*retriever_calls)
+        merged_sources = merge_sources(results, top_k=request.top_k)
+        return await rerank_hybrid_sources(request.query, merged_sources, request.top_k)
+
+    async def _merge_and_rerank(
+        self,
+        request: QueryRequest,
+        source_groups: list[list[SourceCitation]],
+    ) -> list[SourceCitation]:
+        """Merge and rerank one or more source groups."""
+        merged_sources = merge_sources(source_groups, top_k=request.top_k)
+        return await rerank_sources(request.query, merged_sources, request.top_k)
+
+
+def should_include_sql_in_hybrid(query: str) -> bool:
+    """Return whether a hybrid query should include optional SQL retrieval."""
+    normalized_query = query.lower()
+    return any(
+        term in normalized_query
+        for term in ("how many", "count", "sum", "average", "total", "group by", "records")
+    )
+
+
+async def rerank_hybrid_sources(
+    query: str,
+    merged_sources: list[SourceCitation],
+    top_k: int,
+) -> list[SourceCitation]:
+    """Rerank text retrieval sources while preserving SQL snippets safely."""
+    sql_sources = [source for source in merged_sources if source.source_type == QueryRoute.SQL]
+    text_sources = [source for source in merged_sources if source.source_type != QueryRoute.SQL]
+    reranked_text_sources = await rerank_sources(query, text_sources, top_k)
+    combined_sources = [*reranked_text_sources, *sql_sources]
+    combined_sources.sort(
+        key=lambda source: (
+            -source.score,
+            source.title.lower(),
+            source.snippet.lower(),
         )
-        return [source for retriever_results in results for source in retriever_results]
+    )
+    return combined_sources[:top_k]
