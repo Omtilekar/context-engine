@@ -53,3 +53,23 @@ output "rds_master_secret_arn" {
   value       = module.rds.master_secret_arn
   sensitive   = true
 }
+
+output "alb_dns_name" {
+  description = "DNS name of the public application load balancer."
+  value       = module.ecs.alb_dns_name
+}
+
+output "backend_ecr_repository_url" {
+  description = "ECR repository URL for the backend container image."
+  value       = module.ecs.ecr_repository_url
+}
+
+output "ecs_cluster_name" {
+  description = "Name of the ContextEngine ECS cluster."
+  value       = module.ecs.cluster_name
+}
+
+output "ecs_service_name" {
+  description = "Name of the ContextEngine ECS service."
+  value       = module.ecs.service_name
+}

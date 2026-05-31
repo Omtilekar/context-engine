@@ -3,6 +3,11 @@ output "db_endpoint" {
   value       = aws_db_instance.main.endpoint
 }
 
+output "db_address" {
+  description = "Hostname for the ContextEngine PostgreSQL instance."
+  value       = aws_db_instance.main.address
+}
+
 output "db_instance_id" {
   description = "Identifier of the ContextEngine PostgreSQL instance."
   value       = aws_db_instance.main.identifier
@@ -28,4 +33,3 @@ output "subnet_group_name" {
   description = "Name of the RDS subnet group."
   value       = aws_db_subnet_group.main.name
 }
-

@@ -81,3 +81,9 @@ variable "private_subnet_cidrs" {
     error_message = "Exactly two private subnet CIDR blocks are required."
   }
 }
+
+variable "ecs_desired_count" {
+  description = "Idle ECS service task count; demo-on scales this to 1."
+  type        = number
+  default     = 0
+}

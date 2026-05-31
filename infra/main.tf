@@ -36,3 +36,22 @@ module "rds" {
   project_name          = var.project_name
   rds_security_group_id = module.vpc.rds_security_group_id
 }
+
+module "ecs" {
+  source = "./modules/ecs"
+
+  alb_security_group_id = module.vpc.alb_security_group_id
+  aws_region            = var.aws_region
+  common_tags           = local.common_tags
+  db_host               = module.rds.db_address
+  db_name               = module.rds.db_name
+  db_port               = module.rds.db_port
+  desired_count         = var.ecs_desired_count
+  ecs_security_group_id = module.vpc.ecs_security_group_id
+  environment           = var.environment
+  private_subnet_ids    = module.vpc.private_subnet_ids
+  project_name          = var.project_name
+  public_subnet_ids     = module.vpc.public_subnet_ids
+  rds_master_secret_arn = module.rds.master_secret_arn
+  vpc_id                = module.vpc.vpc_id
+}

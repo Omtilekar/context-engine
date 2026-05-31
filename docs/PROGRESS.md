@@ -9,7 +9,7 @@
 
 **Overall:** Phase 1 complete · Phase 2 in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 2 — Task 4: Build ECS module
+**Next task:** Phase 2 — Task 5: Build S3 module
 
 ---
 
@@ -19,7 +19,7 @@
 |-------|--------|------------|-------------|
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
-| Phase 2 — Terraform Infrastructure | IN PROGRESS | 19 | 47 |
+| Phase 2 — Terraform Infrastructure | IN PROGRESS | 24 | 47 |
 | Phase 3 — Backend RAG Engine | NOT STARTED | 0 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
@@ -131,11 +131,11 @@
 - [x] Enable pgvector + pg_trgm via Alembic migration (not Terraform)
 
 ### ECS Module
-- [ ] ECS cluster: `context-engine-prod-ecs-cluster`
-- [ ] ECS task definition (0.25 vCPU, 0.5 GB)
-- [ ] ECS service (desired count 1, in private subnets)
-- [ ] ALB + target group + listener
-- [ ] ECR repository: `context-engine-backend`
+- [x] ECS cluster: `context-engine-prod-ecs-cluster`
+- [x] ECS task definition (0.25 vCPU, 0.5 GB)
+- [x] ECS service (desired count 0 idle, demo-on to 1, in private subnets)
+- [x] ALB + target group + listener
+- [x] ECR repository: `context-engine-backend`
 
 ### S3 & CloudFront
 - [ ] S3 frontend bucket (private, OAC for CloudFront)
@@ -225,6 +225,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 2 Task 1 complete — Terraform root structure, backend config, provider pinning |
 | May 31, 2026 | Phase 2 Task 2 complete — VPC module with public/private subnets, single NAT, security groups |
 | May 31, 2026 | Phase 2 Task 3 complete — RDS module with PostgreSQL 16, gp3, backups, managed secret |
+| May 31, 2026 | Phase 2 Task 4 complete — ECS, ECR, ALB, target group, listener, idle service wiring |
 
 ---
 
