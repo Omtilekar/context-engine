@@ -9,7 +9,7 @@
 
 **Overall:** Phase 2 infrastructure code complete · Phase 3 backend foundation in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 3 — Task 5: Implement first real retriever (BM25 keyword)
+**Next task:** Phase 3 — Task 6: Implement semantic pgvector retriever
 
 ---
 
@@ -20,7 +20,7 @@
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
 | Phase 2 — Terraform Infrastructure | APPLY DEFERRED | 41 | 47 |
-| Phase 3 — Backend RAG Engine | IN PROGRESS | 18 | 63 |
+| Phase 3 — Backend RAG Engine | IN PROGRESS | 19 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
 | Phase 6 — Testing & Quality | NOT STARTED | 0 | 22 |
@@ -190,7 +190,8 @@
 - [x] Backend `.env.example` for Docker Compose local development
 - [x] Makefile local commands for up/down/logs/migrate/test
 - [x] Expand unit tests for route heuristics and chunking
-- [ ] Implement BM25 keyword retriever against PostgreSQL
+- [x] Implement BM25 keyword retriever against PostgreSQL
+- [ ] Implement semantic pgvector retriever
 - [ ] Add real retriever implementations one at a time
 
 ---
@@ -263,6 +264,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 3 Alembic setup complete — async migration env, initial schema migration, offline migration tests |
 | May 31, 2026 | Phase 3 Docker Compose local dev complete — pgvector PostgreSQL, backend service, local Make targets |
 | May 31, 2026 | Phase 3 route/chunking/schema unit tests expanded — 36 backend tests passing |
+| May 31, 2026 | Phase 3 BM25 keyword retriever complete — PostgreSQL full-text search, seed script, 42 backend tests passing |
 
 ---
 

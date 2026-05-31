@@ -41,6 +41,10 @@ class SourceCitation(BaseModel):
     source_type: QueryRoute
     snippet: str
     source_id: str | None = None
+    chunk_id: str | None = None
+    document_id: str | None = None
+    retrieval_mode: str | None = None
+    metadata: dict[str, str] = Field(default_factory=dict)
 
 
 class VerificationResult(BaseModel):

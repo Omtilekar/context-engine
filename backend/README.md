@@ -30,10 +30,55 @@ Run migrations against the local Compose database:
 make local-migrate
 ```
 
+Seed local keyword-search sample data:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m app.scripts.seed_local
+cd ..
+```
+
 Test the health endpoint:
 
 ```powershell
 Invoke-WebRequest -UseBasicParsing http://localhost:8000/health
+```
+
+Test the keyword/BM25 route:
+
+```powershell
+$body = @{ query = 'keyword retrieval'; top_k = 5 } | ConvertTo-Json
+Invoke-WebRequest -UseBasicParsing http://localhost:8000/query -Method POST -ContentType 'application/json' -Body $body
+```
+
+The response includes the route decision and source citations shaped like:
+
+```json
+{
+  "route_decision": {
+    "route": "bm25",
+    "confidence": 0.72,
+    "reasoning": "The query appears to require exact lexical matching.",
+    "entities": []
+  },
+  "sources": [
+    {
+      "title": "local-keyword-demo.txt",
+      "score": 0.42,
+      "source_type": "bm25",
+      "snippet": "ContextEngine uses PostgreSQL full-text search...",
+      "source_id": "<chunk-uuid>",
+      "chunk_id": "<chunk-uuid>",
+      "document_id": "<document-uuid>",
+      "retrieval_mode": "keyword",
+      "metadata": {
+        "rank": "0.730000",
+        "chunk_index": "0",
+        "document_source_type": "text"
+      }
+    }
+  ]
+}
 ```
 
 Stop the local stack:
