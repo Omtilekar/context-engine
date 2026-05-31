@@ -30,7 +30,7 @@ Run migrations against the local Compose database:
 make local-migrate
 ```
 
-Seed local keyword and semantic-search sample data:
+Seed local keyword, semantic-search, and structured SQL sample data:
 
 ```powershell
 docker compose exec backend python -m app.scripts.seed_local
@@ -105,14 +105,26 @@ $body = @{ query = 'how many products cost more than 100?'; top_k = 5 } | Conver
 Invoke-WebRequest -UseBasicParsing http://localhost:8000/query -Method POST -ContentType 'application/json' -Body $body
 ```
 
-The SQL retriever introspects the live DB schema at query time, generates a SELECT statement,
-validates it through an injection guard (blocks DROP, DELETE, INSERT, UPDATE, TRUNCATE, ALTER,
-CREATE, EXEC, EXECUTE, GRANT, REVOKE), enforces a 50-row limit and a 5-second execution
-timeout, and returns each row as a `SourceCitation` with `retrieval_mode: "sql"`. The
-`product_catalog` demo table is seeded by `seed_local` and is the primary test target.
+The SQL retriever is disabled unless `OPENAI_API_KEY` is configured. When enabled, it
+introspects only allowlisted tables, generates a single SELECT statement, validates it
+through an injection guard, enforces a 50-row limit and a 5-second execution timeout, and
+returns each row as a `SourceCitation` with `retrieval_mode: "sql"`.
 
-If `OPENAI_API_KEY` is not set, the SQL retriever logs a warning and returns an empty result
-instead of raising. All guard, row-mapping, and endpoint tests run without a real API key.
+The guard rejects non-SELECT statements, destructive keywords, SQL comments (`--`, `/* */`),
+semicolon chaining, multi-statement SQL, and access to tables outside `SQL_ALLOWED_TABLES`.
+The default local allowlist is:
+
+```powershell
+SQL_ALLOWED_TABLES=product_catalog
+```
+
+`product_catalog` is a local-only portfolio demo table created by `seed_local`; it is not part
+of the core Alembic RAG schema. Production structured-source tables should be added through
+their own migrations or controlled ingestion flow before being added to `SQL_ALLOWED_TABLES`.
+
+If `OPENAI_API_KEY` is not set, the SQL retriever returns an empty result instead of raising
+or touching the database. All guard, row-mapping, and endpoint tests run without a real API
+key.
 
 Stop the local stack:
 

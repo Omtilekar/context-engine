@@ -1,7 +1,7 @@
 import asyncio
 import json
 import re
-from collections.abc import Awaitable, Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Collection, Mapping, Sequence
 from typing import Any, cast
 
 from sqlalchemy import text
@@ -17,37 +17,94 @@ logger = get_logger(__name__)
 
 SQL_ROW_LIMIT = 50
 SQL_TIMEOUT_SECONDS = 5.0
+DEFAULT_SQL_ALLOWED_TABLES = frozenset({"product_catalog"})
 
 BLOCKED_SQL_PATTERN = re.compile(
     r"\b(drop|delete|insert|update|truncate|alter|create|exec|execute|grant|revoke)\b",
+    re.IGNORECASE,
+)
+SQL_COMMENT_PATTERN = re.compile(r"(--|/\*|\*/)")
+TABLE_REFERENCE_PATTERN = re.compile(
+    r"\b(?:FROM|JOIN)\s+((?:\"[^\"]+\"|[a-zA-Z_][\w]*)(?:\.(?:\"[^\"]+\"|[a-zA-Z_][\w]*))?)",
     re.IGNORECASE,
 )
 
 SqlGenerator = Callable[[str, str], Awaitable[str]]
 
 
-def is_safe_select(statement: str) -> bool:
+def get_allowed_sql_tables() -> frozenset[str]:
+    """Return the configured allowlist for generated SQL table access."""
+    raw_tables = get_settings().sql_allowed_tables
+    tables = frozenset(
+        table.strip().strip('"').lower() for table in raw_tables.split(",") if table.strip()
+    )
+    return tables or DEFAULT_SQL_ALLOWED_TABLES
+
+
+def extract_table_names(statement: str) -> frozenset[str]:
+    """Extract table names referenced by FROM and JOIN clauses."""
+    table_names: set[str] = set()
+    for match in TABLE_REFERENCE_PATTERN.finditer(statement):
+        raw_name = match.group(1)
+        parts = [part.strip().strip('"').lower() for part in raw_name.split(".")]
+        if parts:
+            table_names.add(parts[-1])
+    return frozenset(table_names)
+
+
+def has_semicolon_chaining(statement: str) -> bool:
+    """Return whether a statement contains semicolon-delimited SQL chaining."""
+    stripped = statement.strip()
+    if ";" not in stripped:
+        return False
+    without_one_trailing_semicolon = stripped[:-1] if stripped.endswith(";") else stripped
+    return ";" in without_one_trailing_semicolon or not stripped.endswith(";")
+
+
+def is_safe_select(
+    statement: str,
+    allowed_tables: Collection[str] | None = None,
+) -> bool:
     """Return whether a SQL statement satisfies the SELECT-only injection guard.
 
     Args:
         statement: Raw SQL statement to evaluate.
+        allowed_tables: Optional table allowlist. Defaults to configured allowed tables.
 
     Returns:
-        True only when the statement starts with SELECT and contains no blocked keywords.
+        True only when the statement is one SELECT with no blocked tokens and only
+        allowlisted tables.
     """
     stripped = statement.strip()
     if not stripped.upper().startswith("SELECT"):
         return False
-    return BLOCKED_SQL_PATTERN.search(stripped) is None
+    if BLOCKED_SQL_PATTERN.search(stripped):
+        return False
+    if SQL_COMMENT_PATTERN.search(stripped):
+        return False
+    if has_semicolon_chaining(stripped):
+        return False
+
+    referenced_tables = extract_table_names(stripped)
+    normalized_allowlist = frozenset(
+        table.strip().strip('"').lower()
+        for table in (allowed_tables if allowed_tables is not None else get_allowed_sql_tables())
+        if table.strip()
+    )
+    if not referenced_tables:
+        return False
+    return referenced_tables.issubset(normalized_allowlist)
 
 
-def _inspect_schema(sync_conn: Any) -> str:
+def _inspect_schema(sync_conn: Any, allowed_tables: Collection[str]) -> str:
     """Introspect table names and columns from a synchronous DB connection."""
     from sqlalchemy import inspect as sa_inspect
 
     insp = sa_inspect(sync_conn)
     schema_lines: list[str] = []
     for table_name in sorted(insp.get_table_names()):
+        if table_name.lower() not in allowed_tables:
+            continue
         columns = insp.get_columns(table_name)
         col_defs = ", ".join(f"{c['name']} {c['type']}" for c in columns)
         schema_lines.append(f"{table_name}({col_defs})")
@@ -56,16 +113,17 @@ def _inspect_schema(sync_conn: Any) -> str:
     return "Available tables:\n" + "\n".join(schema_lines)
 
 
-async def fetch_schema_context() -> str:
+async def fetch_schema_context(allowed_tables: Collection[str] | None = None) -> str:
     """Return a human-readable schema description for the SQL generator prompt.
 
     Returns:
         Newline-separated table and column description, or fallback message on error.
     """
     engine = get_engine()
+    effective_allowed_tables = allowed_tables or get_allowed_sql_tables()
     try:
         async with engine.connect() as connection:
-            return await connection.run_sync(_inspect_schema)
+            return await connection.run_sync(_inspect_schema, effective_allowed_tables)
     except (OSError, SQLAlchemyError) as error:
         logger.warning("Schema introspection failed", extra={"error": str(error)})
         return "Schema unavailable."
@@ -98,6 +156,7 @@ async def _openai_sql_generator(query: str, schema_context: str) -> str:
         "You are a SQL expert. Given a database schema and a natural-language query, "
         "generate a single valid SELECT statement. "
         "Return ONLY the SQL statement with no explanation or markdown code fences. "
+        "Use exactly one SELECT statement and only the tables listed in the schema. "
         "Never use DROP, DELETE, INSERT, UPDATE, TRUNCATE, ALTER, CREATE, EXEC, EXECUTE, "
         "GRANT, or REVOKE.\n\n"
         f"Database schema:\n{schema_context}"
@@ -119,8 +178,8 @@ async def _openai_sql_generator(query: str, schema_context: str) -> str:
 
 def _extract_table_name(statement: str) -> str:
     """Extract the primary table name from a SELECT statement."""
-    match = re.search(r"\bFROM\s+(\w+)", statement, re.IGNORECASE)
-    return match.group(1) if match else "unknown"
+    table_names = extract_table_names(statement)
+    return sorted(table_names)[0] if table_names else "unknown"
 
 
 def _rows_to_sources(
@@ -223,8 +282,13 @@ async def retrieve_sql(
         return []
 
     bounded_top_k = min(top_k, SQL_ROW_LIMIT)
+    allowed_tables = get_allowed_sql_tables()
+    if sql_generator is None and not get_settings().openai_api_key:
+        logger.info("Text-to-SQL disabled because OPENAI_API_KEY is not configured")
+        return []
+
     effective_schema = (
-        schema_context if schema_context is not None else await fetch_schema_context()
+        schema_context if schema_context is not None else await fetch_schema_context(allowed_tables)
     )
 
     generator = sql_generator or _openai_sql_generator
@@ -237,7 +301,7 @@ async def retrieve_sql(
     if not generated_sql.strip():
         return []
 
-    if not is_safe_select(generated_sql):
+    if not is_safe_select(generated_sql, allowed_tables=allowed_tables):
         logger.warning(
             "SQL injection guard blocked statement",
             extra={"sql_preview": generated_sql[:200]},
@@ -245,7 +309,9 @@ async def retrieve_sql(
         return []
 
     table_name = _extract_table_name(generated_sql)
-    limited_sql = f"SELECT * FROM ({generated_sql.rstrip(';')}) AS _result LIMIT {bounded_top_k}"
+    limited_sql = (
+        f"SELECT * FROM ({generated_sql.rstrip(';').strip()}) AS _result LIMIT {bounded_top_k}"
+    )
 
     if session is not None:
         return await _execute_sql_with_session(

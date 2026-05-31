@@ -12,6 +12,8 @@ from app.retrieval.sql import (
     SQL_TIMEOUT_SECONDS,
     _extract_table_name,
     _rows_to_sources,
+    extract_table_names,
+    has_semicolon_chaining,
     is_safe_select,
     retrieve_sql,
 )
@@ -102,6 +104,26 @@ async def _update_injection_generator(query: str, schema: str) -> str:
     return "SELECT id FROM product_catalog; UPDATE product_catalog SET price=0"
 
 
+async def _comment_injection_generator(query: str, schema: str) -> str:
+    """Test sql_generator returning a comment-based injection attempt."""
+    return "SELECT * FROM product_catalog -- hide the rest"
+
+
+async def _block_comment_injection_generator(query: str, schema: str) -> str:
+    """Test sql_generator returning a block-comment injection attempt."""
+    return "SELECT /* sneaky */ * FROM product_catalog"
+
+
+async def _unknown_table_generator(query: str, schema: str) -> str:
+    """Test sql_generator returning a SELECT against an unknown table."""
+    return "SELECT * FROM users"
+
+
+async def _join_unknown_table_generator(query: str, schema: str) -> str:
+    """Test sql_generator joining an allowlisted table to an unknown table."""
+    return "SELECT p.name, u.email FROM product_catalog p JOIN users u ON p.id = u.id"
+
+
 async def _empty_generator(query: str, schema: str) -> str:
     """Test sql_generator that returns empty string (no SQL generated)."""
     return ""
@@ -162,7 +184,56 @@ def test_is_safe_select_allows_valid_select() -> None:
     """Plain SELECT statements without blocked keywords are approved."""
     assert is_safe_select("SELECT * FROM product_catalog")
     assert is_safe_select("SELECT id, name FROM product_catalog WHERE price > 100")
-    assert is_safe_select("  SELECT COUNT(*) FROM chunks  ")
+    assert is_safe_select("  SELECT COUNT(*) FROM product_catalog  ")
+
+
+def test_is_safe_select_allows_single_trailing_semicolon() -> None:
+    """A single trailing SQL terminator is accepted and stripped before execution."""
+    assert is_safe_select("SELECT * FROM product_catalog;")
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "SELECT * FROM product_catalog; SELECT * FROM product_catalog",
+        "SELECT * FROM product_catalog; UPDATE product_catalog SET price=0",
+        "SELECT * FROM product_catalog;DROP TABLE product_catalog",
+    ],
+)
+def test_is_safe_select_blocks_semicolon_chaining(statement: str) -> None:
+    """Semicolon-delimited multi-statement SQL is rejected."""
+    assert not is_safe_select(statement)
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "SELECT * FROM product_catalog -- trailing comment",
+        "SELECT /* inline comment */ * FROM product_catalog",
+        "SELECT * FROM product_catalog /* block comment */",
+    ],
+)
+def test_is_safe_select_blocks_sql_comments(statement: str) -> None:
+    """Line and block comments are rejected by the SQL guard."""
+    assert not is_safe_select(statement)
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "SELECT * FROM users",
+        "SELECT * FROM documents",
+        "SELECT * FROM product_catalog JOIN users ON users.id = product_catalog.id",
+    ],
+)
+def test_is_safe_select_blocks_unknown_tables(statement: str) -> None:
+    """Generated SQL can only access allowlisted structured tables."""
+    assert not is_safe_select(statement)
+
+
+def test_is_safe_select_rejects_select_without_table_reference() -> None:
+    """SELECT without a FROM table is rejected for a tight single-purpose SQL retriever."""
+    assert not is_safe_select("SELECT 1")
 
 
 def test_blocked_sql_pattern_covers_all_required_keywords() -> None:
@@ -195,7 +266,7 @@ def test_sql_timeout_is_five_seconds() -> None:
 
 
 # ---------------------------------------------------------------------------
-# _extract_table_name
+# table extraction
 # ---------------------------------------------------------------------------
 
 
@@ -207,6 +278,18 @@ def test_extract_table_name_from_simple_select() -> None:
 def test_extract_table_name_returns_unknown_when_missing() -> None:
     """Returns 'unknown' when no FROM clause is found."""
     assert _extract_table_name("SELECT 1") == "unknown"
+
+
+def test_extract_table_names_finds_from_and_join_tables() -> None:
+    """Table extraction captures FROM and JOIN references for allowlist validation."""
+    statement = "SELECT p.name FROM public.product_catalog p JOIN users u ON p.id = u.id"
+    assert extract_table_names(statement) == {"product_catalog", "users"}
+
+
+def test_has_semicolon_chaining_detects_multiple_statements() -> None:
+    """Semicolon chaining detection allows one trailing terminator only."""
+    assert not has_semicolon_chaining("SELECT * FROM product_catalog;")
+    assert has_semicolon_chaining("SELECT * FROM product_catalog; SELECT * FROM users")
 
 
 # ---------------------------------------------------------------------------
@@ -299,6 +382,78 @@ async def test_retrieve_sql_blocks_multi_statement_injection() -> None:
         sql_generator=_update_injection_generator,
         schema_context="product_catalog(id, name, price)",
     )
+    assert result == []
+
+
+async def test_retrieve_sql_blocks_line_comment_injection() -> None:
+    """Line comments from sql_generator are rejected."""
+    fake_session = FakeSession([sql_row()])
+    result = await retrieve_sql(
+        "show products",
+        top_k=5,
+        session=cast(object, fake_session),  # type: ignore[arg-type]
+        sql_generator=_comment_injection_generator,
+        schema_context="product_catalog(id, name, price)",
+    )
+    assert result == []
+
+
+async def test_retrieve_sql_blocks_block_comment_injection() -> None:
+    """Block comments from sql_generator are rejected."""
+    fake_session = FakeSession([sql_row()])
+    result = await retrieve_sql(
+        "show products",
+        top_k=5,
+        session=cast(object, fake_session),  # type: ignore[arg-type]
+        sql_generator=_block_comment_injection_generator,
+        schema_context="product_catalog(id, name, price)",
+    )
+    assert result == []
+
+
+async def test_retrieve_sql_blocks_unknown_table_access() -> None:
+    """Generated SQL against unknown tables is rejected before execution."""
+    fake_session = FakeSession([sql_row()])
+    result = await retrieve_sql(
+        "show users",
+        top_k=5,
+        session=cast(object, fake_session),  # type: ignore[arg-type]
+        sql_generator=_unknown_table_generator,
+        schema_context="product_catalog(id, name, price)",
+    )
+    assert result == []
+
+
+async def test_retrieve_sql_blocks_join_to_unknown_table() -> None:
+    """Generated SQL cannot join allowlisted tables to unknown tables."""
+    fake_session = FakeSession([sql_row()])
+    result = await retrieve_sql(
+        "show product users",
+        top_k=5,
+        session=cast(object, fake_session),  # type: ignore[arg-type]
+        sql_generator=_join_unknown_table_generator,
+        schema_context="product_catalog(id, name, price)",
+    )
+    assert result == []
+
+
+async def test_retrieve_sql_without_openai_key_returns_empty_before_db(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Default text-to-SQL path is disabled when OPENAI_API_KEY is absent."""
+
+    class FakeSettings:
+        openai_api_key: str | None = None
+        sql_allowed_tables = "product_catalog"
+
+    async def fail_fetch_schema_context(*args: object, **kwargs: object) -> str:
+        raise AssertionError("schema should not be fetched without OPENAI_API_KEY")
+
+    monkeypatch.setattr("app.retrieval.sql.get_settings", lambda: FakeSettings())
+    monkeypatch.setattr("app.retrieval.sql.fetch_schema_context", fail_fetch_schema_context)
+
+    result = await retrieve_sql("how many products", top_k=5)
+
     assert result == []
 
 

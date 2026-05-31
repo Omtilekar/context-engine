@@ -124,9 +124,9 @@ async def seed_sample_data() -> None:
 async def seed_product_catalog() -> None:
     """Create and populate the product_catalog structured demo table.
 
-    This table is used to test the SQL retriever with natural-language queries
-    like 'how many software products cost more than $100?'. It is created with
-    CREATE TABLE IF NOT EXISTS so the operation is idempotent.
+    This local-only table is used to test the SQL retriever with natural-language
+    queries like 'how many software products cost more than $100?'. It is created
+    outside Alembic because it is demo data, not part of the core RAG schema.
     """
     engine = get_engine()
     async with engine.begin() as conn:

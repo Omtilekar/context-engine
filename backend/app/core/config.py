@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     memory_update_enabled: bool = Field(default=True, alias="MEMORY_UPDATE_ENABLED")
     embedding_provider: str = Field(default="local", alias="EMBEDDING_PROVIDER")
     embedding_dimension: int = Field(default=1536, alias="EMBEDDING_DIMENSION")
+    sql_allowed_tables: str = Field(default="product_catalog", alias="SQL_ALLOWED_TABLES")
 
     model_config = SettingsConfigDict(
         env_file=".env",

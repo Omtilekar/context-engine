@@ -20,7 +20,7 @@
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
 | Phase 2 — Terraform Infrastructure | APPLY DEFERRED | 41 | 47 |
-| Phase 3 — Backend RAG Engine | IN PROGRESS | 20 | 63 |
+| Phase 3 — Backend RAG Engine | IN PROGRESS | 21 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
 | Phase 6 — Testing & Quality | NOT STARTED | 0 | 22 |
@@ -193,6 +193,7 @@
 - [x] Implement BM25 keyword retriever against PostgreSQL
 - [x] Implement semantic pgvector retriever
 - [x] Implement structured SQL retriever with injection guard
+- [x] Harden SQL retriever guard with comments, semicolon, and table allowlist checks
 - [ ] Add real retriever implementations one at a time
 
 ---
@@ -268,6 +269,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 3 BM25 keyword retriever complete — PostgreSQL full-text search, seed script, 42 backend tests passing |
 | May 31, 2026 | Phase 3 semantic pgvector retriever complete — deterministic local embeddings, pgvector search, 56 backend tests passing |
 | May 31, 2026 | Phase 3 SQL retriever complete — text-to-SQL via GPT-4o-mini, injection guard (12 blocked keywords), schema introspection, 5s timeout, product_catalog seed table |
+| May 31, 2026 | Phase 3 SQL retriever hardening complete — comment blocking, semicolon chaining rejection, table allowlist, OpenAI-off guard, 119 backend tests passing |
 
 ---
 
