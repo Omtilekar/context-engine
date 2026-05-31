@@ -1,7 +1,7 @@
 from enum import StrEnum
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SourceType(StrEnum):
@@ -24,6 +24,8 @@ class DocumentIngestRequest(BaseModel):
     content: str | None = None
     url: str | None = None
     metadata: dict[str, str] = Field(default_factory=dict)
+
+    model_config = ConfigDict(str_strip_whitespace=True)
 
 
 class IngestResponse(BaseModel):

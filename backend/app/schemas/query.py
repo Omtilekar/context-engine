@@ -21,6 +21,8 @@ class QueryRequest(BaseModel):
     top_k: int = Field(default=5, ge=1, le=20)
     session_id: str | None = None
 
+    model_config = ConfigDict(str_strip_whitespace=True)
+
 
 class RouteDecision(BaseModel):
     """Classifier output describing how a query should be retrieved."""
