@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     graph_enabled: bool = Field(default=True, alias="GRAPH_ENABLED")
     verification_enabled: bool = Field(default=True, alias="VERIFICATION_ENABLED")
     memory_update_enabled: bool = Field(default=True, alias="MEMORY_UPDATE_ENABLED")
+    embedding_provider: str = Field(default="local", alias="EMBEDDING_PROVIDER")
+    embedding_dimension: int = Field(default=1536, alias="EMBEDDING_DIMENSION")
 
     model_config = SettingsConfigDict(
         env_file=".env",

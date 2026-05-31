@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from uuid import UUID
 
 import pytest
@@ -6,7 +7,7 @@ from pydantic import ValidationError
 
 from app.main import app
 from app.schemas.document import DocumentIngestRequest, SourceType
-from app.schemas.query import QueryRequest
+from app.schemas.query import QueryRequest, SourceCitation
 
 
 def test_query_request_validation_strips_query_text() -> None:
@@ -41,8 +42,21 @@ def test_ingest_request_rejects_empty_title() -> None:
         DocumentIngestRequest(source_type=SourceType.TEXT, title="   ")
 
 
-async def test_query_endpoint_returns_placeholder_response_shape() -> None:
+async def test_query_endpoint_returns_placeholder_response_shape(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """The query endpoint returns the current extendable placeholder response."""
+
+    async def fake_retrieve_semantic(
+        query: str,
+        top_k: int,
+        query_embedding: Sequence[float] | None,
+    ) -> list[SourceCitation]:
+        """Avoid live database access in schema endpoint tests."""
+        return []
+
+    monkeypatch.setattr("app.retrieval.router.retrieve_semantic", fake_retrieve_semantic)
+
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post("/query", json={"query": "What are the key risks?"})

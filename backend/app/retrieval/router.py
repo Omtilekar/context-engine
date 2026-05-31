@@ -1,5 +1,6 @@
 import asyncio
 
+from app.embeddings.provider import get_embedding_provider
 from app.retrieval.graph import retrieve_graph
 from app.retrieval.keyword import retrieve_keyword
 from app.retrieval.semantic import retrieve_semantic
@@ -83,7 +84,8 @@ class RetrievalRouter:
         if route_decision.route == QueryRoute.WIKI:
             return await retrieve_wiki(request.query, request.top_k)
         if route_decision.route == QueryRoute.SEMANTIC:
-            return await retrieve_semantic(request.query, request.top_k)
+            query_embedding = await get_embedding_provider().embed_query(request.query)
+            return await retrieve_semantic(request.query, request.top_k, query_embedding)
         if route_decision.route == QueryRoute.BM25:
             return await retrieve_keyword(request.query, request.top_k)
         if route_decision.route == QueryRoute.SQL:
@@ -91,9 +93,10 @@ class RetrievalRouter:
         if route_decision.route == QueryRoute.GRAPH:
             return await retrieve_graph(request.query, request.top_k)
 
+        query_embedding = await get_embedding_provider().embed_query(request.query)
         results = await asyncio.gather(
             retrieve_wiki(request.query, request.top_k),
-            retrieve_semantic(request.query, request.top_k),
+            retrieve_semantic(request.query, request.top_k, query_embedding),
             retrieve_keyword(request.query, request.top_k),
             retrieve_graph(request.query, request.top_k),
         )

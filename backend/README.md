@@ -30,11 +30,15 @@ Run migrations against the local Compose database:
 make local-migrate
 ```
 
-Seed local keyword-search sample data:
+Seed local keyword and semantic-search sample data:
 
 ```powershell
 docker compose exec backend python -m app.scripts.seed_local
 ```
+
+Local development uses `EMBEDDING_PROVIDER=local`, which generates deterministic 1536-dim
+hash embeddings. This is only for local testing and demos without OpenAI calls; production
+OpenAI embeddings will be wired in a later Phase 3 task.
 
 Test the health endpoint:
 
@@ -49,29 +53,44 @@ $body = @{ query = 'keyword retrieval'; top_k = 5 } | ConvertTo-Json
 Invoke-WebRequest -UseBasicParsing http://localhost:8000/query -Method POST -ContentType 'application/json' -Body $body
 ```
 
+Test the semantic pgvector route:
+
+```powershell
+$body = @{ query = 'How does semantic search find related meaning?'; top_k = 5 } | ConvertTo-Json
+Invoke-WebRequest -UseBasicParsing http://localhost:8000/query -Method POST -ContentType 'application/json' -Body $body
+```
+
+Test the hybrid route:
+
+```powershell
+$body = @{ query = 'Compare exact keyword retrieval across semantic meaning'; top_k = 5 } | ConvertTo-Json
+Invoke-WebRequest -UseBasicParsing http://localhost:8000/query -Method POST -ContentType 'application/json' -Body $body
+```
+
 The response includes the route decision and source citations shaped like:
 
 ```json
 {
   "route_decision": {
-    "route": "bm25",
-    "confidence": 0.72,
-    "reasoning": "The query appears to require exact lexical matching.",
+    "route": "semantic",
+    "confidence": 0.66,
+    "reasoning": "The query is best handled as a meaning-based semantic lookup.",
     "entities": []
   },
   "sources": [
     {
       "title": "local-keyword-demo.txt",
-      "score": 0.42,
-      "source_type": "bm25",
-      "snippet": "ContextEngine uses PostgreSQL full-text search...",
+      "score": 0.82,
+      "source_type": "semantic",
+      "snippet": "The local development stack runs pgvector PostgreSQL...",
       "source_id": "<chunk-uuid>",
       "chunk_id": "<chunk-uuid>",
       "document_id": "<document-uuid>",
-      "retrieval_mode": "keyword",
+      "retrieval_mode": "semantic",
       "metadata": {
-        "rank": "0.730000",
-        "chunk_index": "0",
+        "distance": "0.180000",
+        "similarity_score": "0.820000",
+        "chunk_index": "2",
         "document_source_type": "text"
       }
     }
