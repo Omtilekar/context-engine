@@ -32,6 +32,15 @@ class Settings(BaseSettings):
     reranker_mode: str = Field(default="disabled", alias="RERANKER_MODE")
     llm_provider: str = Field(default="disabled", alias="LLM_PROVIDER")
     openai_model: str = Field(default="gpt-4o", alias="OPENAI_MODEL")
+    cors_allowed_origins: str = Field(
+        default="http://localhost:5173,http://127.0.0.1:5173",
+        alias="CORS_ALLOWED_ORIGINS",
+    )
+
+    @property
+    def cors_origins(self) -> list[str]:
+        """Return configured browser origins for local frontend development."""
+        return [origin.strip() for origin in self.cors_allowed_origins.split(",") if origin.strip()]
 
     model_config = SettingsConfigDict(
         env_file=".env",

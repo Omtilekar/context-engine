@@ -7,9 +7,9 @@
 
 ## Current Status
 
-**Overall:** Phase 2 infrastructure code complete · Phase 3 backend foundation in progress
+**Overall:** Phase 2 infrastructure code complete · Frontend UI foundation in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 3 — Task 16: UI
+**Next task:** Task 17 — awaiting approval
 
 ---
 
@@ -22,7 +22,7 @@
 | Phase 2 — Terraform Infrastructure | APPLY DEFERRED | 41 | 47 |
 | Phase 3 — Backend RAG Engine | IN PROGRESS | 29 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
-| Phase 5 — Frontend | NOT STARTED | 0 | 38 |
+| Phase 5 — Frontend | IN PROGRESS | 1 | 38 |
 | Phase 6 — Testing & Quality | NOT STARTED | 0 | 22 |
 | Phase 7 — CI/CD & Deployment | NOT STARTED | 0 | 23 |
 | Phase 8 — Observability & Polish | NOT STARTED | 0 | 24 |
@@ -203,6 +203,17 @@
 - [x] Query logging and retrieval run persistence
 - [x] Local end-to-end demo script and portfolio demo dataset
 
+## Phase 5 — Frontend (IN PROGRESS)
+
+### UI Foundation
+- [x] React + Vite + TypeScript app scaffolded under `frontend/`
+- [x] Tailwind dashboard layout for query, ingest, answer, sources, verification, and debug JSON
+- [x] API client for `/health`, `/status`, `/query`, and `/ingest`
+- [x] Route decision and confidence badges
+- [x] Docker Compose frontend service on `http://localhost:5173`
+- [x] Makefile commands for frontend install/dev/build and local full stack
+- [x] Frontend README and `.env.example`
+
 ---
 
 ## AWS Resources Created
@@ -285,6 +296,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 3 ingestion pipeline complete — /ingest persists documents, chunks, deterministic local embeddings, failed-ingest handling, 173 backend tests passing, 2 optional integration tests skipped |
 | May 31, 2026 | Phase 3 query audit persistence complete — query_logs and retrieval_runs store route, answer, confidence, verification, source, reranker, and generation metadata, 180 backend tests passing, 2 optional integration tests skipped |
 | May 31, 2026 | Phase 3 local portfolio demo complete — demo/data dataset, demo-local script, Makefile target, README instructions, 185 backend tests passing, 2 optional integration tests skipped |
+| May 31, 2026 | Task 16 frontend UI foundation complete — React/Vite dashboard, API client, local CORS, Compose frontend service, Makefile commands, frontend build/lint passing, backend tests still 185 passing and 2 skipped |
 
 ---
 

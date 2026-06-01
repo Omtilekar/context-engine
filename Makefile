@@ -8,7 +8,7 @@ ECS_SERVICE := $(PROJECT)-$(ENVIRONMENT)-api
 RDS_INSTANCE := $(PROJECT)-$(ENVIRONMENT)-rds
 ALB_NAME := $(PROJECT)-$(ENVIRONMENT)-alb
 
-.PHONY: demo-local demo-on demo-off local-down local-logs local-migrate local-test local-up status
+.PHONY: demo-local demo-on demo-off frontend-build frontend-dev frontend-install local-down local-full-up local-logs local-migrate local-test local-up status
 
 demo-on:
 	-aws rds start-db-instance --db-instance-identifier $(RDS_INSTANCE) --profile $(AWS_PROFILE) --region $(AWS_REGION)
@@ -29,11 +29,15 @@ status:
 local-up:
 	docker compose up --build -d --wait postgres backend
 
+local-full-up:
+	docker compose up --build -d --wait postgres backend
+	docker compose up -d frontend
+
 local-down:
 	docker compose down
 
 local-logs:
-	docker compose logs -f postgres backend
+	docker compose logs -f postgres backend frontend
 
 local-migrate:
 	docker compose up -d --wait postgres
@@ -43,6 +47,15 @@ demo-local:
 	docker compose up -d --wait postgres backend
 	docker compose exec backend alembic upgrade head
 	docker compose exec backend python -m app.scripts.demo_local
+
+frontend-install:
+	cd frontend && npm install
+
+frontend-dev:
+	cd frontend && npm run dev
+
+frontend-build:
+	cd frontend && npm run build
 
 local-test:
 	cd backend && .\.venv\Scripts\python.exe -m ruff format .
