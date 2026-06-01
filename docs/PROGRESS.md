@@ -299,6 +299,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 3 local portfolio demo complete — demo/data dataset, demo-local script, Makefile target, README instructions, 185 backend tests passing, 2 optional integration tests skipped |
 | May 31, 2026 | Task 16 frontend UI foundation complete — React/Vite dashboard, API client, local CORS, Compose frontend service, Makefile commands, frontend build/lint passing, backend tests still 185 passing and 2 skipped |
 | June 1, 2026 | Bug fix — demo-local graph seeding now avoids asyncpg ambiguous bind inference, remains idempotent, and backend tests pass with 186 passing and 2 skipped |
+| June 1, 2026 | Documentation — added `docs/PROJECT_GUIDE.md`, a full project guide covering architecture, backend, frontend, infra, local demo, cost controls, validation, and current gaps |
 
 ---
 
