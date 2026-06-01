@@ -9,7 +9,7 @@
 
 **Overall:** Phase 2 infrastructure code complete · Frontend UI foundation in progress
 **Last updated:** June 1, 2026
-**Next task:** Task 17 — awaiting approval
+**Next task:** Priority 2 — SSE streaming on /query endpoint
 
 ---
 
@@ -20,7 +20,7 @@
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
 | Phase 2 — Terraform Infrastructure | APPLY DEFERRED | 41 | 47 |
-| Phase 3 — Backend RAG Engine | IN PROGRESS | 29 | 63 |
+| Phase 3 — Backend RAG Engine | IN PROGRESS | 30 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | IN PROGRESS | 1 | 38 |
 | Phase 6 — Testing & Quality | NOT STARTED | 0 | 22 |
@@ -300,6 +300,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Task 16 frontend UI foundation complete — React/Vite dashboard, API client, local CORS, Compose frontend service, Makefile commands, frontend build/lint passing, backend tests still 185 passing and 2 skipped |
 | June 1, 2026 | Bug fix — demo-local graph seeding now avoids asyncpg ambiguous bind inference, remains idempotent, and backend tests pass with 186 passing and 2 skipped |
 | June 1, 2026 | Documentation — added `docs/PROJECT_GUIDE.md`, a full project guide covering architecture, backend, frontend, infra, local demo, cost controls, validation, and current gaps |
+| June 1, 2026 | Priority 1 complete — GPT-4o-mini query classifier: 10 few-shot examples per route, LLM-first with heuristic fallback, LLM_CLASSIFIER_ENABLED flag, 206 tests passing (20 new classifier tests) |
 
 ---
 

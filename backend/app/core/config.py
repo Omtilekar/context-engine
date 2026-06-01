@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     reranker_mode: str = Field(default="disabled", alias="RERANKER_MODE")
     llm_provider: str = Field(default="disabled", alias="LLM_PROVIDER")
     openai_model: str = Field(default="gpt-4o", alias="OPENAI_MODEL")
+    llm_classifier_enabled: bool = Field(default=True, alias="LLM_CLASSIFIER_ENABLED")
     cors_allowed_origins: str = Field(
         default="http://localhost:5173,http://127.0.0.1:5173",
         alias="CORS_ALLOWED_ORIGINS",
