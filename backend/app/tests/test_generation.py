@@ -217,7 +217,7 @@ async def test_query_endpoint_includes_answer_and_citations(
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
             "/query",
-            json={"query": "How does semantic search find related meaning?"},
+            json={"query": "Which retrieval approach finds related meaning?"},
         )
 
     payload = response.json()

@@ -32,7 +32,20 @@ class RetrievalRouter:
             "between",
         )
         keyword_terms = ("exact", "mentions", "keyword", "phrase", '"')
-        wiki_terms = ("what is", "define", "explain", "documentation", "docs", "overview", "wiki")
+        wiki_terms = (
+            "what is",
+            "what are",
+            "define",
+            "definition",
+            "explain",
+            "documentation",
+            "docs",
+            "guide",
+            "tutorial",
+            "how does",
+            "overview",
+            "wiki",
+        )
         hybrid_terms = ("everything", "compare", "all about", "combine", "both", "across")
 
         signals = {
@@ -90,7 +103,8 @@ class RetrievalRouter:
     ) -> list[SourceCitation]:
         """Run the placeholder retriever for the selected route."""
         if route_decision.route == QueryRoute.WIKI:
-            return await retrieve_wiki(request.query, request.top_k)
+            wiki_sources = await retrieve_wiki(request.query, request.top_k)
+            return await self._merge_and_rerank(request, [wiki_sources])
         if route_decision.route == QueryRoute.SEMANTIC:
             query_embedding = await get_embedding_provider().embed_query(request.query)
             semantic_sources = await retrieve_semantic(

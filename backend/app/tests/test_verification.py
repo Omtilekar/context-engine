@@ -166,7 +166,7 @@ async def test_query_response_includes_verification_and_confidence(
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
             "/query",
-            json={"query": "How does semantic search find related meaning?"},
+            json={"query": "Which retrieval approach finds related meaning?"},
         )
 
     payload = response.json()

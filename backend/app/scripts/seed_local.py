@@ -3,7 +3,7 @@ import asyncio
 from sqlalchemy import select, text
 
 from app.db.connection import close_database_connections, get_engine, get_session_maker
-from app.db.models import Chunk, Document
+from app.db.models import Chunk, Document, WikiPage
 from app.embeddings.provider import get_embedding_provider
 
 SAMPLE_FILENAME = "local-keyword-demo.txt"
@@ -80,6 +80,70 @@ GRAPH_RELATIONS = [
     ("ContextEngine", "deployed_on", "AWS"),
     ("pgvector", "stored_in", "PostgreSQL"),
     ("FlashRank", "reranks", "RetrievalResults"),
+]
+
+WIKI_PAGES = [
+    (
+        "ContextEngine",
+        (
+            "ContextEngine is a portfolio hybrid RAG system that routes questions across "
+            "wiki memory, semantic pgvector search, BM25 keyword search, structured SQL, "
+            "and PostgreSQL graph retrieval before verification and answer generation."
+        ),
+        ["context-engine", "rag", "architecture"],
+        ["Hybrid RAG", "Verification Layer", "PostgreSQL"],
+    ),
+    (
+        "PostgreSQL",
+        (
+            "PostgreSQL is the single database backing ContextEngine. It stores documents, "
+            "chunks, pgvector embeddings, BM25-style text indexes, entity_relations, "
+            "wiki_pages, retrieval telemetry, and local structured demo tables."
+        ),
+        ["database", "postgresql", "storage"],
+        ["pgvector", "ContextEngine"],
+    ),
+    (
+        "pgvector",
+        (
+            "pgvector adds vector similarity search to PostgreSQL. ContextEngine uses a "
+            "1536-dimension embedding column on chunks with an HNSW cosine index for "
+            "semantic retrieval in the same RDS instance as the rest of the knowledge stores."
+        ),
+        ["vector-search", "postgresql", "semantic"],
+        ["PostgreSQL", "Hybrid RAG"],
+    ),
+    (
+        "FlashRank",
+        (
+            "FlashRank is the optional local cross-encoder reranker for ContextEngine. It "
+            "can rerank merged semantic and keyword retrieval results without an external "
+            "reranking API, and it is disabled by default for local tests."
+        ),
+        ["reranking", "retrieval", "local"],
+        ["Hybrid RAG"],
+    ),
+    (
+        "Hybrid RAG",
+        (
+            "Hybrid RAG in ContextEngine combines wiki pages, semantic pgvector chunks, "
+            "BM25 keyword matches, structured SQL results, and graph relationship evidence. "
+            "The merger deduplicates sources, preserves provenance, and feeds the best "
+            "context into verification and generation."
+        ),
+        ["rag", "retrieval", "hybrid"],
+        ["ContextEngine", "Verification Layer", "pgvector", "FlashRank"],
+    ),
+    (
+        "Verification Layer",
+        (
+            "The verification layer checks retrieved evidence before answer generation. It "
+            "reports grounding, evidence count, retrieval mode diversity, duplicate snippets, "
+            "missing metadata, simple conflict signals, and a confidence score."
+        ),
+        ["verification", "confidence", "grounding"],
+        ["ContextEngine", "Hybrid RAG"],
+    ),
 ]
 
 
@@ -197,12 +261,42 @@ async def seed_graph_relations() -> None:
     print(f"Seeded {inserted} graph relations for entity_relations demo data")
 
 
+async def seed_wiki_pages() -> None:
+    """Insert or update idempotent local wiki_pages rows for wiki retriever testing."""
+    session_maker = get_session_maker()
+    inserted = 0
+    updated = 0
+    async with session_maker() as session:
+        for title, content, tags, wikilinks in WIKI_PAGES:
+            existing_page = await session.scalar(select(WikiPage).where(WikiPage.title == title))
+            if existing_page is None:
+                session.add(
+                    WikiPage(
+                        title=title,
+                        content=content,
+                        tags=tags,
+                        wikilinks=wikilinks,
+                    )
+                )
+                inserted += 1
+                continue
+
+            existing_page.content = content
+            existing_page.tags = tags
+            existing_page.wikilinks = wikilinks
+            updated += 1
+
+        await session.commit()
+    print(f"Seeded {inserted} wiki pages and updated {updated} existing wiki pages")
+
+
 async def main() -> None:
     """Run the local seed script and close database connections."""
     try:
         await seed_sample_data()
         await seed_product_catalog()
         await seed_graph_relations()
+        await seed_wiki_pages()
     finally:
         await close_database_connections()
 

@@ -56,9 +56,43 @@ Invoke-WebRequest -UseBasicParsing http://localhost:8000/query -Method POST -Con
 Test the semantic pgvector route:
 
 ```powershell
-$body = @{ query = 'How does semantic search find related meaning?'; top_k = 5 } | ConvertTo-Json
+$body = @{ query = 'Which retrieval approach finds related meaning?'; top_k = 5 } | ConvertTo-Json
 Invoke-WebRequest -UseBasicParsing http://localhost:8000/query -Method POST -ContentType 'application/json' -Body $body
 ```
+
+Test the wiki route:
+
+```powershell
+$body = @{ query = 'What is ContextEngine?'; top_k = 5 } | ConvertTo-Json
+Invoke-WebRequest -UseBasicParsing http://localhost:8000/query -Method POST -ContentType 'application/json' -Body $body
+```
+
+Wiki retrieval uses the PostgreSQL `wiki_pages` table for documentation-style memory. It checks
+exact page-title matches, partial title matches, and full-text content matches, then returns
+normal `SourceCitation` objects with `retrieval_mode: "wiki"` and metadata such as:
+
+```json
+{
+  "page_title": "ContextEngine",
+  "match_type": "exact",
+  "wiki_score": 1.0
+}
+```
+
+The router sends definition and documentation questions to wiki retrieval, including:
+
+- `What is ContextEngine?`
+- `Explain pgvector`
+- `Definition of Hybrid RAG`
+- `Documentation for PostgreSQL`
+- `Docs for FlashRank`
+- `Guide to Verification Layer`
+- `Tutorial for Hybrid RAG`
+- `How does pgvector work?`
+- `Overview of ContextEngine`
+
+The local seed script inserts idempotent wiki pages for `ContextEngine`, `PostgreSQL`,
+`pgvector`, `FlashRank`, `Hybrid RAG`, and `Verification Layer`.
 
 Test the hybrid route:
 

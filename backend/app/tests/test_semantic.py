@@ -179,7 +179,7 @@ async def test_query_endpoint_returns_mocked_semantic_contexts(
         query_embedding: Sequence[float] | None,
     ) -> list[SourceCitation]:
         """Return one fake semantic source for endpoint wiring."""
-        assert query == "How does semantic search find related meaning?"
+        assert query == "Which retrieval approach finds related meaning?"
         assert top_k == 5
         assert query_embedding is not None
         assert len(query_embedding) == DEFAULT_EMBEDDING_DIMENSION
@@ -203,7 +203,7 @@ async def test_query_endpoint_returns_mocked_semantic_contexts(
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
             "/query",
-            json={"query": "How does semantic search find related meaning?"},
+            json={"query": "Which retrieval approach finds related meaning?"},
         )
 
     payload = response.json()

@@ -59,7 +59,7 @@ async def test_query_endpoint_returns_placeholder_response_shape(
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.post("/query", json={"query": "What are the key risks?"})
+        response = await client.post("/query", json={"query": "Which design risks matter most?"})
 
     payload = response.json()
 
