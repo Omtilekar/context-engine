@@ -1,5 +1,6 @@
 from enum import StrEnum
 from typing import Literal, Self
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -125,6 +126,8 @@ class QueryResponse(BaseModel):
     verification: VerificationResult
     confidence: ConfidenceResult
     generation_metadata: GenerationMetadata
+    query_log_id: UUID | None = None
+    retrieval_run_id: UUID | None = None
     tokens_used: int = 0
     cost_usd: float = 0.0
 

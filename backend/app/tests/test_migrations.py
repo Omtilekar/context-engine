@@ -4,6 +4,7 @@ from app.db.models import Base
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 INITIAL_MIGRATION = BACKEND_ROOT / "alembic" / "versions" / "0001_initial_schema.py"
+QUERY_AUDIT_MIGRATION = BACKEND_ROOT / "alembic" / "versions" / "0002_query_audit_metadata.py"
 
 
 def test_model_metadata_contains_initial_schema_tables() -> None:
@@ -48,3 +49,23 @@ def test_alembic_async_environment_is_configured() -> None:
     assert "async_engine_from_config" in env_py
     assert "asyncio.run(run_migrations_online())" in env_py
     assert "get_settings().database_url" in env_py
+
+
+def test_query_audit_migration_adds_metadata_columns() -> None:
+    """Query audit migration adds JSONB metadata and query-log linkage."""
+    migration = QUERY_AUDIT_MIGRATION.read_text(encoding="utf-8")
+
+    required_snippets = [
+        "route_confidence",
+        "confidence_label",
+        "source_count",
+        "citation_count",
+        "query_log_id",
+        "source_scores",
+        "metadata",
+        "ix_retrieval_runs_query_log_id",
+        "fk_retrieval_runs_query_log_id_query_logs",
+    ]
+
+    for snippet in required_snippets:
+        assert snippet in migration

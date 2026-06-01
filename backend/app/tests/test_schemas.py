@@ -5,6 +5,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from pydantic import ValidationError
 
+from app.db.query_logging import QueryPersistenceResult
 from app.main import app
 from app.schemas.document import DocumentIngestRequest, IngestResponse, SourceType
 from app.schemas.query import QueryRequest, SourceCitation
@@ -55,7 +56,12 @@ async def test_query_endpoint_returns_placeholder_response_shape(
         """Avoid live database access in schema endpoint tests."""
         return []
 
+    async def fake_persist_query_audit(*args: object, **kwargs: object) -> QueryPersistenceResult:
+        """Avoid live database writes in schema endpoint tests."""
+        return QueryPersistenceResult()
+
     monkeypatch.setattr("app.retrieval.router.retrieve_semantic", fake_retrieve_semantic)
+    monkeypatch.setattr("app.main.persist_query_audit", fake_persist_query_audit)
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

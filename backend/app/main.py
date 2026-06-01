@@ -1,11 +1,13 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from time import perf_counter
 
 from fastapi import FastAPI
 
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 from app.db.connection import close_database_connections
+from app.db.query_logging import persist_query_audit
 from app.generation.generator import generate_answer
 from app.ingestion.pipeline import IngestionPipeline
 from app.retrieval.router import RetrievalRouter
@@ -58,9 +60,10 @@ async def status() -> StatusResponse:
     )
 
 
-@app.post("/query", response_model=QueryResponse)
+@app.post("/query", response_model=QueryResponse, response_model_exclude_none=True)
 async def query(request: QueryRequest) -> QueryResponse:
     """Route a query and return an extendable placeholder answer."""
+    start_time = perf_counter()
     router = RetrievalRouter()
     route_decision = await router.route(request)
     sources = await router.retrieve(request, route_decision)
@@ -77,6 +80,16 @@ async def query(request: QueryRequest) -> QueryResponse:
         verification=verification,
         confidence=confidence,
     )
+    latency_ms = int((perf_counter() - start_time) * 1000)
+    persistence = await persist_query_audit(
+        request=request,
+        route_decision=route_decision,
+        sources=sources,
+        verification=verification,
+        confidence=confidence,
+        generation=generation,
+        latency_ms=latency_ms,
+    )
     return QueryResponse(
         answer=generation.answer,
         route_decision=route_decision,
@@ -85,6 +98,8 @@ async def query(request: QueryRequest) -> QueryResponse:
         verification=verification,
         confidence=confidence,
         generation_metadata=generation.metadata,
+        query_log_id=persistence.query_log_id,
+        retrieval_run_id=persistence.retrieval_run_id,
         tokens_used=generation.metadata.tokens_used,
         cost_usd=generation.metadata.cost_usd,
     )

@@ -222,6 +222,18 @@ Generated answers cite retrieved sources using inline anchors like `[1]`. The pu
 }
 ```
 
+Each `/query` request is persisted to PostgreSQL on a best-effort basis. `query_logs` stores
+the user query, selected route, route confidence, generated answer, final confidence score
+and label, grounding/conflict flags, source count, citation count, token/cost metadata, latency,
+and non-secret JSONB audit metadata. `retrieval_runs` stores the retrieval modes used, `top_k`,
+source IDs, chunk IDs, source scores, reranker mode, verification warnings, generation provider,
+and a `query_log_id` reference when the query log row is written successfully.
+
+Query logging is failure-safe: if PostgreSQL logging fails, the API logs a warning and still
+returns the normal answer. The response includes `query_log_id` and `retrieval_run_id` only when
+audit persistence succeeds. Do not store secrets in queries or source metadata; the logger does
+not read environment secrets or AWS credentials.
+
 The response includes the route decision, verification, confidence, citations, generation
 metadata, and source citations shaped like:
 
@@ -270,6 +282,8 @@ metadata, and source citations shaped like:
     "source_count": 1,
     "fallback_reason": "llm_provider_disabled"
   },
+  "query_log_id": "<query-log-uuid>",
+  "retrieval_run_id": "<retrieval-run-uuid>",
   "sources": [
     {
       "title": "local-keyword-demo.txt",

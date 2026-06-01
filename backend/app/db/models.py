@@ -14,7 +14,7 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -123,16 +123,36 @@ class RetrievalRun(Base):
     __tablename__ = "retrieval_runs"
     __table_args__ = (
         Index("ix_retrieval_runs_created_at", "created_at"),
+        Index("ix_retrieval_runs_query_log_id", "query_log_id"),
         Index("ix_retrieval_runs_route_decision", "route_decision"),
         Index("ix_retrieval_runs_status", "status"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    query_log_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("query_logs.id"),
+        nullable=True,
+    )
     query: Mapped[str] = mapped_column(Text, nullable=False)
     route_decision: Mapped[str] = mapped_column(String(50), nullable=False)
     confidence: Mapped[float] = mapped_column(Float, nullable=False)
     retrievers_used: Mapped[list[str]] = mapped_column(
         ARRAY(Text), server_default=text("'{}'::text[]")
+    )
+    top_k: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    source_ids: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default=text("'{}'::text[]"))
+    chunk_ids: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default=text("'{}'::text[]"))
+    source_scores: Mapped[dict[str, object]] = mapped_column(
+        JSONB,
+        default=dict,
+        server_default=text("'{}'::jsonb"),
+    )
+    audit_metadata: Mapped[dict[str, object]] = mapped_column(
+        "metadata",
+        JSONB,
+        default=dict,
+        server_default=text("'{}'::jsonb"),
     )
     status: Mapped[str] = mapped_column(String(50), default="started", nullable=False)
     latency_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -154,6 +174,9 @@ class QueryLog(Base):
     query: Mapped[str] = mapped_column(Text, nullable=False)
     route_decision: Mapped[str] = mapped_column(String(50), nullable=False)
     confidence: Mapped[float] = mapped_column(Float, nullable=False)
+    route_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    answer: Mapped[str | None] = mapped_column(Text, nullable=True)
+    confidence_label: Mapped[str | None] = mapped_column(String(20), nullable=True)
     retrievers_used: Mapped[list[str]] = mapped_column(
         ARRAY(Text), server_default=text("'{}'::text[]")
     )
@@ -161,5 +184,14 @@ class QueryLog(Base):
     tokens_used: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     cost_usd: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     grounded: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    has_conflicts: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    source_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    citation_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     conflicts: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default=text("'{}'::text[]"))
+    audit_metadata: Mapped[dict[str, object]] = mapped_column(
+        "metadata",
+        JSONB,
+        default=dict,
+        server_default=text("'{}'::jsonb"),
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
