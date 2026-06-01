@@ -8,7 +8,7 @@
 ## Current Status
 
 **Overall:** Phase 2 infrastructure code complete · Frontend UI foundation in progress
-**Last updated:** May 31, 2026
+**Last updated:** June 1, 2026
 **Next task:** Task 17 — awaiting approval
 
 ---
@@ -260,6 +260,7 @@ Project path:        C:\Om\Codes\context_engine
 | Terraform remote init/plan blocked by `context-engine-admin` InvalidClientTokenId | Resolved — added backend profile and confirmed STS identity |
 | Terraform S3 backend `dynamodb_table` deprecation warning | Open — kept DynamoDB lock table because project state locking is already bootstrapped |
 | Poetry command unavailable in current shell PATH | Open — used local `.venv` for Phase 3 checks; install/repair Poetry before lockfile workflow |
+| `make demo-local` graph seed asyncpg `AmbiguousParameterError` | Resolved — graph seed now uses ORM existence check plus insert, with idempotency regression test |
 
 ---
 
@@ -297,6 +298,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 3 query audit persistence complete — query_logs and retrieval_runs store route, answer, confidence, verification, source, reranker, and generation metadata, 180 backend tests passing, 2 optional integration tests skipped |
 | May 31, 2026 | Phase 3 local portfolio demo complete — demo/data dataset, demo-local script, Makefile target, README instructions, 185 backend tests passing, 2 optional integration tests skipped |
 | May 31, 2026 | Task 16 frontend UI foundation complete — React/Vite dashboard, API client, local CORS, Compose frontend service, Makefile commands, frontend build/lint passing, backend tests still 185 passing and 2 skipped |
+| June 1, 2026 | Bug fix — demo-local graph seeding now avoids asyncpg ambiguous bind inference, remains idempotent, and backend tests pass with 186 passing and 2 skipped |
 
 ---
 

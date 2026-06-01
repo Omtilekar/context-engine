@@ -3,7 +3,7 @@ import asyncio
 from sqlalchemy import select, text
 
 from app.db.connection import close_database_connections, get_engine, get_session_maker
-from app.db.models import Chunk, Document, WikiPage
+from app.db.models import Chunk, Document, EntityRelation, WikiPage
 from app.embeddings.provider import get_embedding_provider
 
 SAMPLE_FILENAME = "local-keyword-demo.txt"
@@ -238,25 +238,25 @@ async def seed_graph_relations() -> None:
     inserted = 0
     async with session_maker() as session:
         for entity_a, relation_type, entity_b in GRAPH_RELATIONS:
-            result = await session.execute(
-                text(
-                    "INSERT INTO entity_relations "
-                    "(entity_a, relation_type, entity_b, confidence) "
-                    "SELECT :entity_a, :relation_type, :entity_b, 1.0 "
-                    "WHERE NOT EXISTS ("
-                    "  SELECT 1 FROM entity_relations "
-                    "  WHERE entity_a = :entity_a "
-                    "    AND relation_type = :relation_type "
-                    "    AND entity_b = :entity_b"
-                    ")"
-                ),
-                {
-                    "entity_a": entity_a,
-                    "relation_type": relation_type,
-                    "entity_b": entity_b,
-                },
+            existing_relation = await session.scalar(
+                select(EntityRelation).where(
+                    EntityRelation.entity_a == entity_a,
+                    EntityRelation.relation_type == relation_type,
+                    EntityRelation.entity_b == entity_b,
+                )
             )
-            inserted += int(getattr(result, "rowcount", 0) or 0)
+            if existing_relation is not None:
+                continue
+
+            session.add(
+                EntityRelation(
+                    entity_a=entity_a,
+                    relation_type=relation_type,
+                    entity_b=entity_b,
+                    confidence=1.0,
+                )
+            )
+            inserted += 1
         await session.commit()
     print(f"Seeded {inserted} graph relations for entity_relations demo data")
 
