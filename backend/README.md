@@ -30,7 +30,7 @@ Run migrations against the local Compose database:
 make local-migrate
 ```
 
-Seed local keyword, semantic-search, and structured SQL sample data:
+Seed local keyword, semantic-search, structured SQL, graph, and wiki sample data:
 
 ```powershell
 docker compose exec backend python -m app.scripts.seed_local
@@ -39,6 +39,33 @@ docker compose exec backend python -m app.scripts.seed_local
 Local development uses `EMBEDDING_PROVIDER=local`, which generates deterministic 1536-dim
 hash embeddings. This is only for local testing and demos without OpenAI calls; production
 OpenAI embeddings will be wired in a later Phase 3 task.
+
+The `/ingest` endpoint now persists text documents into local PostgreSQL. It creates a
+`documents` row, chunks the supplied `content`, generates deterministic local embeddings for
+each chunk, writes `chunks` rows, and marks the document `completed`. Empty text is handled
+as a failed ingestion with zero chunks. Parser-specific ingestion for PDFs, DOCX, URLs, APIs,
+databases, and spreadsheets is still a later ingestion expansion; for now, provide extracted
+text in `content`.
+
+Local ingest-then-query flow:
+
+```powershell
+make local-up
+make local-migrate
+
+$body = @{
+  title = 'Demo Hybrid RAG Document'
+  content = 'ContextEngine combines BM25 keyword search, pgvector semantic search, SQL retrieval, graph retrieval, wiki retrieval, verification, confidence scoring, and grounded answer generation.'
+  source_type = 'text'
+} | ConvertTo-Json
+
+Invoke-WebRequest -UseBasicParsing http://localhost:8000/ingest -Method POST -ContentType 'application/json' -Body $body
+
+$query = @{ query = 'What retrieval modes does ContextEngine combine?'; top_k = 5 } | ConvertTo-Json
+Invoke-WebRequest -UseBasicParsing http://localhost:8000/query -Method POST -ContentType 'application/json' -Body $query
+
+make local-down
+```
 
 Test the health endpoint:
 

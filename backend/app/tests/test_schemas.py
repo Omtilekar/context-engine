@@ -1,12 +1,12 @@
 from collections.abc import Sequence
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 from pydantic import ValidationError
 
 from app.main import app
-from app.schemas.document import DocumentIngestRequest, SourceType
+from app.schemas.document import DocumentIngestRequest, IngestResponse, SourceType
 from app.schemas.query import QueryRequest, SourceCitation
 
 
@@ -102,8 +102,30 @@ async def test_query_endpoint_returns_placeholder_response_shape(
     }
 
 
-async def test_ingest_endpoint_returns_placeholder_response_shape() -> None:
-    """The ingest endpoint returns the current queued placeholder response."""
+async def test_ingest_endpoint_returns_ingestion_response_shape(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The ingest endpoint returns the current ingestion response shape."""
+
+    async def fake_ingest(
+        self: object,
+        request: DocumentIngestRequest,
+    ) -> IngestResponse:
+        """Avoid live database access in schema endpoint tests."""
+        return IngestResponse(
+            document_id=uuid4(),
+            status="completed",
+            source_type=request.source_type,
+            chunks_planned=1,
+            chunk_count=1,
+            title=request.title,
+            filename=request.filename or request.title,
+            metadata=request.metadata,
+            message="Ingestion completed with 1 embedded chunks.",
+        )
+
+    monkeypatch.setattr("app.main.IngestionPipeline.ingest", fake_ingest)
+
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
@@ -111,7 +133,9 @@ async def test_ingest_endpoint_returns_placeholder_response_shape() -> None:
             json={
                 "source_type": "text",
                 "title": "Demo document",
+                "filename": "demo.txt",
                 "content": "alpha beta gamma",
+                "metadata": {"source": "schema-test"},
             },
         )
 
@@ -119,9 +143,13 @@ async def test_ingest_endpoint_returns_placeholder_response_shape() -> None:
 
     assert response.status_code == 200
     assert UUID(payload["document_id"])
-    assert payload["status"] == "queued"
+    assert payload["status"] == "completed"
     assert payload["source_type"] == "text"
     assert payload["chunks_planned"] == 1
+    assert payload["chunk_count"] == 1
+    assert payload["title"] == "Demo document"
+    assert payload["filename"] == "demo.txt"
+    assert payload["metadata"] == {"source": "schema-test"}
     assert payload["message"]
 
 

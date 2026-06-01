@@ -9,7 +9,7 @@
 
 **Overall:** Phase 2 infrastructure code complete · Phase 3 backend foundation in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 3 — Task 13: Complete ingestion pipeline
+**Next task:** Phase 3 — Task 14: Query logging and retrieval run persistence
 
 ---
 
@@ -20,7 +20,7 @@
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
 | Phase 2 — Terraform Infrastructure | APPLY DEFERRED | 41 | 47 |
-| Phase 3 — Backend RAG Engine | IN PROGRESS | 26 | 63 |
+| Phase 3 — Backend RAG Engine | IN PROGRESS | 27 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
 | Phase 6 — Testing & Quality | NOT STARTED | 0 | 22 |
@@ -199,7 +199,8 @@
 - [x] GPT-4o answer generation with citations and disabled local fallback
 - [x] Graph retriever using PostgreSQL entity_relations
 - [x] Wiki retriever using PostgreSQL wiki_pages
-- [ ] Complete ingestion pipeline
+- [x] Complete ingestion pipeline
+- [ ] Query logging and retrieval run persistence
 
 ---
 
@@ -280,6 +281,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 3 answer generation complete — GPT-4o provider path, disabled local fallback, grounded prompts, citations, 149 backend tests passing |
 | May 31, 2026 | Phase 3 graph retriever complete — PostgreSQL entity_relations 1-hop/2-hop traversal, local graph seed, 158 backend tests passing |
 | May 31, 2026 | Phase 3 wiki retriever complete — PostgreSQL wiki_pages title/content search, local wiki seed, 168 backend tests passing, 1 optional integration test skipped |
+| May 31, 2026 | Phase 3 ingestion pipeline complete — /ingest persists documents, chunks, deterministic local embeddings, failed-ingest handling, 173 backend tests passing, 2 optional integration tests skipped |
 
 ---
 

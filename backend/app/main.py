@@ -92,6 +92,6 @@ async def query(request: QueryRequest) -> QueryResponse:
 
 @app.post("/ingest", response_model=IngestResponse)
 async def ingest(request: DocumentIngestRequest) -> IngestResponse:
-    """Accept an ingestion request and return a queued placeholder job."""
+    """Persist a text ingestion request into document and chunk tables."""
     pipeline = IngestionPipeline()
     return await pipeline.ingest(request)

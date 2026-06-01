@@ -17,10 +17,11 @@ class SourceType(StrEnum):
 
 
 class DocumentIngestRequest(BaseModel):
-    """Document ingestion request for the placeholder pipeline."""
+    """Document ingestion request accepted by the ingestion pipeline."""
 
     source_type: SourceType
     title: str = Field(min_length=1)
+    filename: str | None = Field(default=None, min_length=1)
     content: str | None = None
     url: str | None = None
     metadata: dict[str, str] = Field(default_factory=dict)
@@ -29,12 +30,16 @@ class DocumentIngestRequest(BaseModel):
 
 
 class IngestResponse(BaseModel):
-    """Response returned after an ingestion request is accepted."""
+    """Response returned after an ingestion request is processed."""
 
     document_id: UUID
     status: str
     source_type: SourceType
     chunks_planned: int
+    chunk_count: int
+    title: str
+    filename: str
+    metadata: dict[str, str] = Field(default_factory=dict)
     message: str
 
 
