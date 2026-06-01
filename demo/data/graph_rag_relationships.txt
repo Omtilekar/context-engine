@@ -1,0 +1,8 @@
+Graph RAG in ContextEngine uses the entity_relations table in PostgreSQL instead of a separate
+graph database. Demo relations connect ContextEngine to PostgreSQL, pgvector, FlashRank, and
+AWS. Additional relations show that pgvector is stored in PostgreSQL and FlashRank reranks
+retrieval results.
+
+Relationship questions such as "Which entities are linked to ContextEngine?" route to the
+graph retriever. It returns one-hop and optional two-hop evidence as normal source citations
+so graph facts participate in verification and answer generation.

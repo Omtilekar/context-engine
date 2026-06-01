@@ -1,0 +1,9 @@
+ContextEngine is a hybrid retrieval system that combines several evidence paths before it
+answers a question. The pipeline can retrieve from wiki pages, pgvector semantic chunks,
+BM25 keyword matches, structured SQL rows, and PostgreSQL entity relationships. A merger
+deduplicates overlapping sources, preserves retrieval provenance, and sends the strongest
+context into verification, confidence scoring, and grounded answer generation.
+
+Hybrid RAG is useful when a recruiter asks broad portfolio questions such as which retrieval
+modes are combined, how citations are preserved, or why a single PostgreSQL database can
+support vector, keyword, graph, wiki, and structured retrieval together.

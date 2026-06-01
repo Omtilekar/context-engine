@@ -1,0 +1,7 @@
+The local portfolio demo is intended to be run before deployment. It starts from local Docker
+Compose services, runs migrations, seeds demo knowledge, ingests the demo documents, and asks
+sample questions across semantic, keyword, SQL, graph, wiki, and hybrid routes.
+
+Readable output should include the question, selected route, route confidence, final
+confidence label, generated answer, citation list, source count, and audit identifiers when
+query logging succeeds.

@@ -1,0 +1,8 @@
+pgvector gives ContextEngine meaning-based retrieval inside PostgreSQL. Each document chunk
+stores a deterministic local embedding during development and a production embedding later.
+Semantic search compares a query embedding with the chunks.embedding vector column so related
+meaning can be found even when the exact words do not match.
+
+The local demo uses hash embeddings only to keep the project free of external API calls. The
+schema is still shaped for text-embedding-3-small with 1536 dimensions, matching the planned
+production embedding model and the HNSW pgvector index.

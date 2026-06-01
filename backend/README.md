@@ -36,6 +36,28 @@ Seed local keyword, semantic-search, structured SQL, graph, and wiki sample data
 docker compose exec backend python -m app.scripts.seed_local
 ```
 
+Run the polished local portfolio demo:
+
+```powershell
+make local-up
+make demo-local
+```
+
+`make demo-local` runs migrations, seeds local SQL/wiki/graph data, ingests the text files in
+`demo/data/`, and asks one sample question for each route: wiki, semantic, BM25 keyword, SQL,
+graph, and hybrid. It prints the selected route, route confidence, final confidence label,
+answer, source count, citations, and query audit IDs when persistence succeeds. The SQL route
+runs without OpenAI, but SQL rows are returned only when `OPENAI_API_KEY` enables text-to-SQL.
+
+Demo questions:
+
+- `What is ContextEngine?`
+- `Which retrieval approach finds similar meaning in stored chunks?`
+- `Find exact keyword FlashRank`
+- `How many software products cost more than 100?`
+- `Which entities are linked to ContextEngine?`
+- `Compare exact keyword search and semantic search for ContextEngine`
+
 Local development uses `EMBEDDING_PROVIDER=local`, which generates deterministic 1536-dim
 hash embeddings. This is only for local testing and demos without OpenAI calls; production
 OpenAI embeddings will be wired in a later Phase 3 task.

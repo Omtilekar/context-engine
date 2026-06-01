@@ -1,0 +1,7 @@
+ContextEngine is designed for an AWS portfolio deployment that stays near a low monthly
+budget. The infrastructure uses ECS Fargate, RDS PostgreSQL 16 with pgvector, S3, CloudFront,
+SQS, DynamoDB on demand, Cognito, Secrets Manager, CloudWatch, and X-Ray.
+
+Cost controls are part of the architecture. ECS starts with desired_count set to zero, RDS is
+single-AZ db.t3.micro, logs use seven-day retention, DynamoDB uses PAY_PER_REQUEST, and the
+demo-on demo-off workflow starts services only when the portfolio demo is active.

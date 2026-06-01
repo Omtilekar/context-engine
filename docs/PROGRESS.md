@@ -9,7 +9,7 @@
 
 **Overall:** Phase 2 infrastructure code complete · Phase 3 backend foundation in progress
 **Last updated:** May 31, 2026
-**Next task:** Phase 3 — Task 15: Local end-to-end demo script and portfolio demo dataset
+**Next task:** Phase 3 — Task 16: UI
 
 ---
 
@@ -20,7 +20,7 @@
 | Phase 0 — Planning | COMPLETE | — | — |
 | Phase 1 — AWS Account Setup | COMPLETE | 30 | 30 |
 | Phase 2 — Terraform Infrastructure | APPLY DEFERRED | 41 | 47 |
-| Phase 3 — Backend RAG Engine | IN PROGRESS | 28 | 63 |
+| Phase 3 — Backend RAG Engine | IN PROGRESS | 29 | 63 |
 | Phase 4 — API Layer | NOT STARTED | 0 | 34 |
 | Phase 5 — Frontend | NOT STARTED | 0 | 38 |
 | Phase 6 — Testing & Quality | NOT STARTED | 0 | 22 |
@@ -201,7 +201,7 @@
 - [x] Wiki retriever using PostgreSQL wiki_pages
 - [x] Complete ingestion pipeline
 - [x] Query logging and retrieval run persistence
-- [ ] Local end-to-end demo script and portfolio demo dataset
+- [x] Local end-to-end demo script and portfolio demo dataset
 
 ---
 
@@ -284,6 +284,7 @@ Project path:        C:\Om\Codes\context_engine
 | May 31, 2026 | Phase 3 wiki retriever complete — PostgreSQL wiki_pages title/content search, local wiki seed, 168 backend tests passing, 1 optional integration test skipped |
 | May 31, 2026 | Phase 3 ingestion pipeline complete — /ingest persists documents, chunks, deterministic local embeddings, failed-ingest handling, 173 backend tests passing, 2 optional integration tests skipped |
 | May 31, 2026 | Phase 3 query audit persistence complete — query_logs and retrieval_runs store route, answer, confidence, verification, source, reranker, and generation metadata, 180 backend tests passing, 2 optional integration tests skipped |
+| May 31, 2026 | Phase 3 local portfolio demo complete — demo/data dataset, demo-local script, Makefile target, README instructions, 185 backend tests passing, 2 optional integration tests skipped |
 
 ---
 

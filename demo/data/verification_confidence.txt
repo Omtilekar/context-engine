@@ -1,0 +1,8 @@
+The verification layer checks retrieved evidence before ContextEngine produces an answer. It
+looks for missing sources, duplicate snippets, weak scores, limited retrieval-mode diversity,
+missing metadata, and simple lexical conflict signals like allowed versus not allowed or
+increase versus decrease.
+
+Confidence scoring combines route confidence, source scores, evidence count, retrieval-mode
+diversity, and verification penalties. The API returns a confidence score, label, reasons,
+verification warnings, citations, and answer metadata for every query.

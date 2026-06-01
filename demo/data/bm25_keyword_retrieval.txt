@@ -1,0 +1,8 @@
+BM25 keyword retrieval is the vectorless search path in ContextEngine. PostgreSQL full-text
+search indexes chunk content and ranks lexical matches with ts_rank_cd. This helps exact
+phrase and keyword questions such as "find exact keyword FlashRank" or "which chunks mention
+BM25 keyword retrieval".
+
+The BM25 route is important for portfolio demos because it shows that the system can answer
+queries that semantic search might blur, including product names, package names, acronyms,
+and terms that should be matched exactly.
